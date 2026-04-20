@@ -7,20 +7,35 @@ export async function getF1Standings(year: number): Promise<LeaderboardResponse>
   })
   if (!season) throw new Error(`No F1 season for ${year}`)
 
-  const standings = await prisma.f1DriverStanding.findMany({
-    where: { seasonId: season.id },
-    include: { player: true },
-    orderBy: { finalPosition: 'asc' },
-  })
+  const [standings, raceResults, playerSeasons] = await Promise.all([
+    prisma.f1DriverStanding.findMany({
+      where: { seasonId: season.id },
+      include: { player: true },
+      orderBy: { finalPosition: 'asc' },
+    }),
+    prisma.f1RaceResult.findMany({ where: { seasonId: season.id } }),
+    prisma.playerSeason.findMany({
+      where: { seasonId: season.id },
+      include: { team: true },
+    }),
+  ])
 
-  const playerSeasons = await prisma.playerSeason.findMany({
-    where: { seasonId: season.id },
-    include: { team: true },
-  })
   const psMap = new Map(playerSeasons.map(ps => [ps.playerId, ps.team]))
+
+  // Compute per-driver stats from race results
+  const statsByPlayer = new Map<number, { podiums: number; poles: number; dnfs: number }>()
+  for (const r of raceResults) {
+    const cur = statsByPlayer.get(r.playerId) ?? { podiums: 0, poles: 0, dnfs: 0 }
+    if ((r.finishPosition ?? 99) <= 3) cur.podiums++
+    if (r.gridPosition === 1) cur.poles++
+    const finished = r.status === 'Finished' || r.status?.startsWith('+')
+    if (!finished) cur.dnfs++
+    statsByPlayer.set(r.playerId, cur)
+  }
 
   const rows = standings.map(s => {
     const team = psMap.get(s.playerId)
+    const derived = statsByPlayer.get(s.playerId) ?? { podiums: 0, poles: 0, dnfs: 0 }
     return {
       playerId: String(s.playerId),
       name: `${s.player.firstName ?? ''} ${s.player.lastName}`.trim(),
@@ -34,8 +49,8 @@ export async function getF1Standings(year: number): Promise<LeaderboardResponse>
         position: s.finalPosition ?? 0,
         points: Number(s.totalPoints ?? 0),
         wins: s.wins,
-        podiums: s.podiums,
-        poles: s.poles,
+        podiums: derived.podiums,
+        poles: derived.poles,
       },
     }
   })
@@ -73,7 +88,7 @@ export async function getF1PlayerStats(playerId: number, year: number): Promise<
 
   let cumPoints = 0
   const chartData: ChartDataPoint[] = raceResults.map(r => {
-    cumPoints += Number(r.points ?? 0)
+    cumPoints += Number(r.points ?? 0) + Number(r.sprintPoints ?? 0)
     return {
       label: r.round,
       points: cumPoints,
@@ -96,9 +111,9 @@ export async function getF1PlayerStats(playerId: number, year: number): Promise<
     summaryStats: {
       Points: Number(standing.totalPoints ?? 0),
       Wins: standing.wins,
-      Podiums: standing.podiums,
-      Poles: standing.poles,
-      DNFs: standing.dnfs,
+      Podiums: raceResults.filter(r => (r.finishPosition ?? 99) <= 3).length,
+      Poles: raceResults.filter(r => r.gridPosition === 1).length,
+      DNFs: raceResults.filter(r => r.status !== 'Finished' && !r.status?.startsWith('+')).length,
     },
   }
 }

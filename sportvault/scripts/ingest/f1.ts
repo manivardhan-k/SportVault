@@ -60,9 +60,17 @@ export async function ingestF1(year: number) {
     console.log(`  P${entry.position} ${d.givenName} ${d.familyName} — ${entry.points}pts`)
   }
 
-  // Race results (for charts)
-  const racesData = await fetchWithDelay(`${BASE}/${year}/results.json?limit=1000`) as any
-  const races = racesData.MRData?.RaceTable?.Races ?? []
+  // Race results (for charts) — paginate since Jolpica returns ~6 per page
+  const races: any[] = []
+  let offset = 0
+  while (true) {
+    const page = await fetchWithDelay(`${BASE}/${year}/results.json?limit=100&offset=${offset}`, {}, 300) as any
+    const batch = page.MRData?.RaceTable?.Races ?? []
+    races.push(...batch)
+    const total = Number(page.MRData?.total ?? 0)
+    offset += batch.length
+    if (offset >= total || batch.length === 0) break
+  }
 
   for (const race of races) {
     for (const result of race.Results) {
@@ -95,5 +103,34 @@ export async function ingestF1(year: number) {
     }
   }
 
-  console.log(`Done: ${standings.length} drivers, ${races.length} races`)
+  // Sprint results — paginate same way
+  const sprintRaces: any[] = []
+  let sprintOffset = 0
+  while (true) {
+    const page = await fetchWithDelay(`${BASE}/${year}/sprint.json?limit=100&offset=${sprintOffset}`, {}, 300) as any
+    const batch = page.MRData?.RaceTable?.Races ?? []
+    sprintRaces.push(...batch)
+    const total = Number(page.MRData?.total ?? 0)
+    sprintOffset += batch.length
+    if (sprintOffset >= total || batch.length === 0) break
+  }
+
+  for (const race of sprintRaces) {
+    for (const result of race.SprintResults ?? []) {
+      const player = await prisma.player.findFirst({
+        where: { sportId: sport.id, externalId: result.Driver.driverId },
+      })
+      if (!player) continue
+
+      const existing = await prisma.f1RaceResult.findFirst({
+        where: { playerId: player.id, seasonId: season.id, round: Number(race.round) },
+      })
+      const sprintPts = Number(result.points)
+      if (existing) {
+        await prisma.f1RaceResult.update({ where: { id: existing.id }, data: { sprintPoints: sprintPts } })
+      }
+    }
+  }
+
+  console.log(`Done: ${standings.length} drivers, ${races.length} races, ${sprintRaces.length} sprint events`)
 }

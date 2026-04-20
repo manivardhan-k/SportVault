@@ -131,6 +131,7 @@ model F1RaceResult {
   finishPosition Int?
   gridPosition   Int?
   points         Decimal? @db.Decimal(5, 2)
+  sprintPoints   Decimal? @db.Decimal(5, 2)
   status         String?  @db.VarChar(50)
   fastestLap     Boolean  @default(false)
   player         Player   @relation(fields: [playerId], references: [id])
