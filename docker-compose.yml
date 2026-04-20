@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: ./sportvault
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./sportvault/.env.local
+    restart: unless-stopped
+
+  ingest:
+    build:
+      context: ./sportvault
+      dockerfile: Dockerfile
+    env_file:
+      - ./sportvault/.env.local
+    profiles:
+      - ingest
+    entrypoint: ["node", "-e", ""]
+    command: >
+      sh -c "npm run ingest -- --sport ${SPORT:-f1} --year ${YEAR:-2023}"
