@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, Fragment } from 'react'
 import { PlayerRow } from './PlayerRow'
 import { PlayerExpandedStats } from './PlayerExpandedStats'
 import type { LeaderboardResponse, PlayerStatsResponse } from '@/types/api'
@@ -75,9 +75,8 @@ export function LeaderboardTable({ data, sport, competition, year, chartConfig }
         </thead>
         <tbody>
           {sorted.map(row => (
-            <>
+            <Fragment key={row.playerId}>
               <PlayerRow
-                key={row.playerId}
                 row={row}
                 columns={data.columns}
                 isExpanded={expandedId === row.playerId}
@@ -85,14 +84,13 @@ export function LeaderboardTable({ data, sport, competition, year, chartConfig }
               />
               {expandedId === row.playerId && (
                 <PlayerExpandedStats
-                  key={`${row.playerId}-exp`}
                   stats={expandedStats}
                   loading={loadingId === row.playerId}
                   chartConfig={chartConfig}
                   onClose={() => { setExpandedId(null); setExpandedStats(null) }}
                 />
               )}
-            </>
+            </Fragment>
           ))}
         </tbody>
       </table>

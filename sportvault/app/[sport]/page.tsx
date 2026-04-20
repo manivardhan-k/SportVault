@@ -7,12 +7,22 @@ export default async function SportPage({ params }: { params: Promise<{ sport: s
   const config = getSportConfig(sport)
   if (!config) redirect('/f1')
 
-  const defaultComp = config.competitions[0]
+  // Find first competition with seasons
+  let targetComp = null
+  let targetSeason = null
 
-  const latestSeason = await prisma.season.findFirst({
-    where: { competition: { slug: defaultComp.slug }, status: 'completed' },
-    orderBy: { year: 'desc' },
-  })
+  for (const comp of config.competitions) {
+    const season = await prisma.season.findFirst({
+      where: { competition: { slug: comp.slug } },
+      orderBy: { year: 'desc' },
+    })
+    if (season) {
+      targetComp = comp
+      targetSeason = season
+      break
+    }
+  }
 
-  redirect(`/${sport}/${defaultComp.slug}/${latestSeason?.year ?? 2023}`)
+  if (!targetComp || !targetSeason) redirect('/f1')
+  redirect(`/${sport}/${targetComp.slug}/${targetSeason.year}`)
 }

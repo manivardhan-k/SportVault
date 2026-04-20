@@ -22,12 +22,14 @@ export default async function LeaderboardPage({
   const config = getSportConfig(sport)
   if (!config) notFound()
 
-  const [seasonsRaw, standingsData] = await Promise.all([
-    prisma.season.findMany({
-      where: { competition: { slug: competition } },
-      orderBy: { year: 'desc' },
-    }),
-    getCached(
+  const seasonsRaw = await prisma.season.findMany({
+    where: { competition: { slug: competition } },
+    orderBy: { year: 'desc' },
+  })
+
+  let standingsData
+  try {
+    standingsData = await getCached(
       standingsKey(sport, competition, year),
       () => {
         switch (sport) {
@@ -39,8 +41,10 @@ export default async function LeaderboardPage({
         }
       },
       TTL.HISTORICAL
-    ),
-  ])
+    )
+  } catch {
+    notFound()
+  }
 
   const seasons: SeasonMeta[] = seasonsRaw.map(s => ({
     year: s.year,
@@ -54,7 +58,7 @@ export default async function LeaderboardPage({
         <CompetitionSelector sportConfig={config} defaultYear={year} />
         <div className="flex-1 overflow-y-auto">
           <LeaderboardTable
-            data={standingsData}
+            data={standingsData!}
             sport={sport}
             competition={competition}
             year={year}
