@@ -25,15 +25,18 @@ function nbaSeasonStr(year: number) {
   return `${year}-${String(year + 1).slice(2)}`
 }
 
-export async function ingestNba(year: number) {
+export async function ingestNba(year: number, seasonType: 'regular' | 'playoffs' = 'regular') {
   const label = nbaSeasonStr(year)
-  console.log(`\n=== NBA ${label} ===`)
+  console.log(`\n=== NBA ${label} ${seasonType} ===`)
 
   const sport = await upsertSport('nba', 'NBA', '🏀')
-  const comp = await upsertCompetition(sport.id, 'nba-regular', 'Regular Season', 'league')
+  const slug = seasonType === 'playoffs' ? 'nba-playoffs' : 'nba-regular'
+  const name = seasonType === 'playoffs' ? 'Playoffs' : 'Regular Season'
+  const comp = await upsertCompetition(sport.id, slug, name, seasonType === 'playoffs' ? 'tournament' : 'league')
   const season = await upsertSeason(comp.id, year, label)
 
-  const url = `${NBA_STATS}/leagueleaders?LeagueID=00&PerMode=PerGame&Scope=S&Season=${label}&SeasonType=Regular%20Season&StatCategory=PTS`
+  const apiSeasonType = seasonType === 'playoffs' ? 'Playoffs' : 'Regular%20Season'
+  const url = `${NBA_STATS}/leagueleaders?LeagueID=00&PerMode=PerGame&Scope=S&Season=${label}&SeasonType=${apiSeasonType}&StatCategory=PTS`
   const data = await fetchWithDelay(url, NBA_HEADERS, 500) as {
     resultSet: { headers: string[]; rowSet: (string | number)[][] }
   }

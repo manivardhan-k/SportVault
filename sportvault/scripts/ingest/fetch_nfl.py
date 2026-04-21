@@ -11,10 +11,12 @@ import pandas as pd
 parser = argparse.ArgumentParser()
 parser.add_argument('--year', type=int, required=True)
 parser.add_argument('--output', type=str, required=True)
+parser.add_argument('--season-type', type=str, default='REG', choices=['REG', 'POST'])
 args = parser.parse_args()
 
-print(f"Fetching NFL {args.year} weekly data...")
+print(f"Fetching NFL {args.year} {args.season_type} weekly data...")
 weekly = nfl.import_weekly_data([args.year])
+weekly = weekly[weekly['season_type'] == args.season_type]
 
 agg_dict = {
     'games': ('week', 'count'),

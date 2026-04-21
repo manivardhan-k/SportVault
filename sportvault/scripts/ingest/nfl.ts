@@ -38,7 +38,8 @@ export async function ingestNfl(year: number, seasonType: 'regular' | 'playoffs'
   const py = ['python3.11', pyenvPy, 'python3', 'python'].find(p => {
     try { execSync(`${p} -c "import nfl_data_py"`, { stdio: 'pipe' }); return true } catch { return false }
   }) ?? 'python3'
-  execSync(`${py} scripts/ingest/fetch_nfl.py --year ${year} --output ${csvPath}`, { stdio: 'inherit' })
+  const seasonTypeArg = seasonType === 'playoffs' ? 'POST' : 'REG'
+  execSync(`${py} scripts/ingest/fetch_nfl.py --year ${year} --output ${csvPath} --season-type ${seasonTypeArg}`, { stdio: 'inherit' })
 
   const sport = await upsertSport('nfl', 'NFL', '🏈')
   const slug = seasonType === 'playoffs' ? 'nfl-playoffs' : 'nfl-regular'

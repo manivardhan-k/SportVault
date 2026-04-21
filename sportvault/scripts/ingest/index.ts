@@ -29,7 +29,7 @@ async function run() {
     case 'f1': await ingestF1(year); break
     case 'soccer': await ingestSoccer(competition, year); break
     case 'nfl': await ingestNfl(year, seasonType); break
-    case 'nba': await ingestNba(year); break
+    case 'nba': await ingestNba(year, seasonType); break
     default:
       console.error(`Unknown sport: ${sport}`)
       process.exit(1)
