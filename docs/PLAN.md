@@ -43,18 +43,31 @@
 
 ## Next Up
 
-### Must-Have
-- [ ] Seed F1 2018–2023 sprint points (re-ingest with new sprint logic — currently only 2024 has sprint data)
-- [ ] Seed Soccer Champions League & World Cup data (currently only Premier League)
-- [ ] NFL playoffs seeding (currently only regular season 2023)
-- [ ] NBA playoffs seeding (currently only regular season 2023–24)
-- [ ] Active sport tab highlight in SportTabs (currently no active state shown)
-- [ ] CompetitionSelector: show only competitions that have data for selected year
+### UI Redesign (spec: docs/superpowers/specs/2026-04-20-ui-redesign-design.md)
+- [ ] Global design system: Sora + JetBrains Mono + Inter, new color palette, CSS variables
+- [ ] Header: logo left, sport tabs right with accent underline active state
+- [ ] Hero strip: 56px, season leader + 3 stats, static (never reacts to sort)
+- [ ] Year selector: inline pill above table, replaces sidebar
+- [ ] Competition tabs: text links with accent underline, disabled state with ● prefix
+- [ ] Leaderboard table: new typography, points bar, amber-follows-sort rule, row dividers
+- [ ] Expanded player row: stat card strip, chart area redesign, disabled Compare button
+- [ ] Sport-specific details: F1 P1/P2 format, Soccer xG tooltip, NFL position badges + delta colors, NBA abbreviations
+- [ ] Icon system: enforce all icon rules across all sports
+
+### Data Fixes
+- [ ] NFL passer_rating always 0 — column missing in nfl_data_py; investigate fix or drop column
+- [ ] NFL stats accuracy: NGS inflates passing yards vs official box scores — evaluate paid API (SportsRadar / MySportsFeeds) or accept NGS with disclaimer
+- [ ] Seed Soccer Champions League & World Cup (blocked by football-data.org free tier; needs paid API)
+- [ ] Verify F1 cumulative chart totals match standings for all years (2018–2024)
+
+### Features
+- [ ] Player compare feature — side-by-side stats + charts for 2–4 players in same season
+- [ ] Active sport tab highlight (currently no active state on initial load)
+- [ ] CompetitionSelector: filter to competitions with data for selected year
 
 ### Nice-to-Have
 - [ ] Supabase Auth (login/logout) — utils/supabase files already in place
 - [ ] Redis/Upstash cache swap (cache interface already designed for it)
-- [ ] Soccer: seed 2018–2022 via a different API (API-Football / SofaScore) when budget allows
+- [ ] Soccer: seed 2018–2022 via API-Football / SofaScore when budget allows
 - [ ] Search / filter by player name in leaderboard
 - [ ] Mobile layout polish
-- [ ] PlayerRow expand button — confirm click target is large enough on mobile

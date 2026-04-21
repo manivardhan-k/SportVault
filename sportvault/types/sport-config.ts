@@ -5,7 +5,7 @@ export interface ColumnDef {
 }
 
 export interface ChartConfig {
-  type: 'line' | 'bar' | 'radar' | 'line+radar'
+  type: 'line' | 'bar' | 'radar' | 'line+radar' | 'scatter'
   primaryDataKey: string
   label: string
   dualMode?: boolean

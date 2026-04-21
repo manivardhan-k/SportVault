@@ -14,28 +14,34 @@ parser.add_argument('--output', type=str, required=True)
 parser.add_argument('--season-type', type=str, default='REG', choices=['REG', 'POST'])
 args = parser.parse_args()
 
-print(f"Fetching NFL {args.year} {args.season_type} weekly data...")
+print(f"Fetching NFL {args.year} {args.season_type} seasonal data...")
+
+# Seasonal data — clean pre-aggregated season totals, no double-counting
+seasonal = nfl.import_seasonal_data([args.year], s_type=args.season_type)
+
+# Weekly data — for player name, position, team, passer_rating
 weekly = nfl.import_weekly_data([args.year])
 weekly = weekly[weekly['season_type'] == args.season_type]
 
-agg_dict = {
-    'games': ('week', 'count'),
-    'passing_yards': ('passing_yards', 'sum'),
-    'passing_tds': ('passing_tds', 'sum'),
-    'interceptions': ('interceptions', 'sum'),
-    'rushing_yards': ('rushing_yards', 'sum'),
-    'rushing_tds': ('rushing_tds', 'sum'),
-    'receptions': ('receptions', 'sum'),
-    'targets': ('targets', 'sum'),
-    'receiving_yards': ('receiving_yards', 'sum'),
-    'receiving_tds': ('receiving_tds', 'sum'),
-}
+# Get per-player metadata: name, position, team (last known), avg passer_rating
+agg_spec = dict(
+    player_name=('player_name', 'last'),
+    player_display_name=('player_display_name', 'last'),
+    position=('position', 'last'),
+    recent_team=('recent_team', 'last'),
+)
 if 'passer_rating' in weekly.columns:
-    agg_dict['passer_rating'] = ('passer_rating', 'mean')
+    agg_spec['passer_rating'] = ('passer_rating', 'mean')
 
-agg = weekly.groupby(['player_id', 'player_name', 'position', 'recent_team']).agg(**agg_dict).reset_index()
-if 'passer_rating' not in agg.columns:
-    agg['passer_rating'] = 0.0
+meta = weekly.groupby('player_id').agg(**agg_spec).reset_index()
+if 'passer_rating' not in meta.columns:
+    meta['passer_rating'] = 0.0
 
-agg.to_csv(args.output, index=False)
-print(f"Exported {len(agg)} records to {args.output}")
+# Merge
+merged = seasonal.merge(meta, on='player_id', how='inner')
+
+# Keep only skill positions
+merged = merged[merged['position'].isin(['QB', 'RB', 'WR', 'TE'])]
+
+merged.to_csv(args.output, index=False)
+print(f"Exported {len(merged)} records to {args.output}")

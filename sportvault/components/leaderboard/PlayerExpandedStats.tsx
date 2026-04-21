@@ -5,6 +5,7 @@ import type { ChartConfig } from '@/types/sport-config'
 import { F1SeasonLineChart } from '@/components/charts/F1SeasonLineChart'
 import { StatsRadarChart } from '@/components/charts/StatsRadarChart'
 import { StatsBarChart } from '@/components/charts/StatsBarChart'
+import { NflQbScatterChart } from '@/components/charts/NflQbScatterChart'
 
 interface PlayerExpandedStatsProps {
   stats: PlayerStatsResponse | null
@@ -47,11 +48,18 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, onClose }: Pl
                     name={stats.name}
                   />
                 )}
-                {chartConfig.type === 'bar' && (
+                {chartConfig.type === 'bar' && !stats.scatterData && (
                   <StatsBarChart
                     summaryStats={stats.summaryStats}
                     teamColor={stats.team.colorPrimary}
                     name={stats.name}
+                  />
+                )}
+                {stats.scatterData && stats.scatterData.length > 0 && stats.scatterAxes && (
+                  <NflQbScatterChart
+                    data={stats.scatterData}
+                    axes={stats.scatterAxes}
+                    selectedName={stats.name}
                   />
                 )}
               </div>

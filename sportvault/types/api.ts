@@ -27,6 +27,14 @@ export interface ChartDataPoint {
   [key: string]: number | string
 }
 
+export interface ScatterDataPoint {
+  name: string
+  x: number
+  y: number
+  color: string
+  isSelected: boolean
+}
+
 export interface PlayerStatsResponse {
   playerId: string
   name: string
@@ -34,6 +42,8 @@ export interface PlayerStatsResponse {
   season: number
   chartData: ChartDataPoint[]
   summaryStats: Record<string, number | string>
+  scatterData?: ScatterDataPoint[]
+  scatterAxes?: { x: string; y: string }
 }
 
 export interface SeasonMeta {

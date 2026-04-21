@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db'
-import type { LeaderboardResponse, PlayerStatsResponse } from '@/types/api'
+import type { LeaderboardResponse, PlayerStatsResponse, ScatterDataPoint } from '@/types/api'
 import type { ColumnDef } from '@/types/sport-config'
 
 const columnsByPosition: Record<string, ColumnDef[]> = {
@@ -108,6 +108,39 @@ export async function getNflPlayerStats(playerId: number, competition: string, y
 
   if (!stat || !playerSeason) throw new Error('Player not found')
 
+  const position = stat.player.position ?? 'QB'
+  let scatterData: ScatterDataPoint[] | undefined
+  if (position === 'QB') {
+    const allQbStats = await prisma.nflPlayerStat.findMany({
+      where: { seasonId: season.id, seasonType, player: { position: 'QB' } },
+      include: { player: true },
+    })
+    const allTeams = await prisma.playerSeason.findMany({
+      where: { seasonId: season.id },
+      include: { team: true },
+    })
+    const teamMap = new Map(allTeams.map(ps => [ps.playerId, ps.team]))
+
+    scatterData = allQbStats
+      .map(s => {
+        const st = s.stats as Record<string, number>
+        const tds = Number(st.passing_tds ?? 0)
+        const ints = Number(st.interceptions ?? 0)
+        const yards = Number(st.passing_yards ?? 0)
+        if (yards < 500) return null
+        const tdIntRatio = ints === 0 ? tds : Math.round((tds / Math.max(ints, 1)) * 10) / 10
+        const color = teamMap.get(s.playerId)?.colorPrimary ?? '#888888'
+        return {
+          name: `${s.player.firstName ?? ''} ${s.player.lastName}`.trim(),
+          x: yards,
+          y: tdIntRatio,
+          color,
+          isSelected: s.playerId === playerId,
+        }
+      })
+      .filter(Boolean) as ScatterDataPoint[]
+  }
+
   return {
     playerId: String(playerId),
     name: `${stat.player.firstName ?? ''} ${stat.player.lastName}`.trim(),
@@ -120,5 +153,7 @@ export async function getNflPlayerStats(playerId: number, competition: string, y
     season: year,
     chartData: [],
     summaryStats: stat.stats as Record<string, number>,
+    scatterData,
+    scatterAxes: position === 'QB' ? { x: 'Passing Yards', y: 'TD / INT Ratio' } : undefined,
   }
 }

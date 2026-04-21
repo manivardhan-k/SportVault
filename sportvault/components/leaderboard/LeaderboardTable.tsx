@@ -56,6 +56,11 @@ export function LeaderboardTable({ data, sport, competition, year, chartConfig }
 
   return (
     <div className="overflow-x-auto">
+      {sport === 'nfl' && (
+        <p className="px-4 pt-2 text-[11px] text-zinc-600">
+          Stats sourced from Next Gen Stats (NGS) — may differ slightly from official NFL box scores.
+        </p>
+      )}
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-zinc-700">
