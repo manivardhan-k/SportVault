@@ -43,9 +43,10 @@ model Season {
   f1Standings   F1DriverStanding[]
   f1RaceResults F1RaceResult[]
   soccerStats   SoccerPlayerStat[]
-  nflStats      NflPlayerStat[]
-  nbaStats      NbaPlayerStat[]
-  teamStandings TeamStanding[]
+  nflStats       NflPlayerStat[]
+  nflWeeklyStats NflWeeklyStat[]
+  nbaStats       NbaPlayerStat[]
+  teamStandings  TeamStanding[]
 
   @@unique([competitionId, year])
   @@index([competitionId, year])
@@ -83,8 +84,9 @@ model Player {
   f1Standings   F1DriverStanding[]
   f1RaceResults F1RaceResult[]
   soccerStats   SoccerPlayerStat[]
-  nflStats      NflPlayerStat[]
-  nbaStats      NbaPlayerStat[]
+  nflStats       NflPlayerStat[]
+  nflWeeklyStats NflWeeklyStat[]
+  nbaStats       NbaPlayerStat[]
 
   @@map("players")
 }
@@ -174,6 +176,21 @@ model NflPlayerStat {
   @@unique([playerId, seasonId, seasonType])
   @@index([seasonId, seasonType])
   @@map("nfl_player_stats")
+}
+
+model NflWeeklyStat {
+  id         Int    @id @default(autoincrement())
+  playerId   Int
+  seasonId   Int
+  seasonType String @default("regular") @db.VarChar(20)
+  week       Int
+  stats      Json   @default("{}")
+  player     Player @relation(fields: [playerId], references: [id])
+  season     Season @relation(fields: [seasonId], references: [id])
+
+  @@unique([playerId, seasonId, seasonType, week])
+  @@index([playerId, seasonId, seasonType])
+  @@map("nfl_weekly_stats")
 }
 
 model NbaPlayerStat {

@@ -30,6 +30,7 @@ export interface SportConfig {
   slug: string
   name: string
   icon: string
+  accentColor: string
   competitions: CompetitionConfig[]
   leaderboardColumns: ColumnDef[]
   defaultSortKey: string

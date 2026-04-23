@@ -1,26 +1,41 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Background layers */
+  --color-sv-bg:             #f7f6f3;
+  --color-sv-surface:        #ffffff;
+  --color-sv-surface2:       #f2f1ee;
+  --color-sv-surface-raised: #faf9f7;
+  --color-sv-divider:        #e4e3df;
+  --color-sv-border2:        #d4d3cf;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Text */
+  --color-sv-text-primary:   #111110;
+  --color-sv-text-secondary: #5a5955;
+  --color-sv-text-muted:     #9a9894;
+
+  /* Semantic */
+  --color-sv-positive: #16a34a;
+  --color-sv-negative: #dc2626;
+  --color-sv-amber:    #d97706;
+
+  /* Sport accents */
+  --color-sv-f1:     #E10600;
+  --color-sv-soccer: #00B04F;
+  --color-sv-nfl:    #013369;
+  --color-sv-nba:    #C9082A;
+
+  /* Fonts */
+  --font-dm-sans: var(--font-dm-sans);
+  --font-dm-mono: var(--font-dm-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f7f6f3;
+  color: #111110;
 }
+
+/* Thin warm scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d3cf; border-radius: 2px; }

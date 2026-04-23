@@ -4,6 +4,7 @@ export const nbaConfig: SportConfig = {
   slug: 'nba',
   name: 'NBA',
   icon: '🏀',
+  accentColor: '#C9082A',
   competitions: [
     { slug: 'nba-regular', name: 'Regular Season', competitionType: 'league', seasonLabelFormat: 'year-range' },
     { slug: 'nba-playoffs', name: 'Playoffs', competitionType: 'tournament', seasonLabelFormat: 'year-range' },

@@ -7,10 +7,11 @@ const columnsByPosition: Record<string, ColumnDef[]> = {
     { key: 'player', label: 'Player', sortable: false },
     { key: 'team', label: 'Team', sortable: true },
     { key: 'games', label: 'G', sortable: true },
-    { key: 'passing_yards', label: 'Pass Yds', sortable: true },
-    { key: 'passing_tds', label: 'TDs', sortable: true },
-    { key: 'interceptions', label: 'INTs', sortable: true },
-    { key: 'passer_rating', label: 'Rating', sortable: true },
+    { key: 'passing_yards', label: 'YDS', sortable: true },
+    { key: 'passing_tds', label: 'TD', sortable: true },
+    { key: 'interceptions', label: 'INT', sortable: true },
+    { key: 'completion_pct', label: 'CMP%', sortable: true },
+    { key: 'passer_rating', label: 'RTG', sortable: true },
   ],
   RB: [
     { key: 'player', label: 'Player', sortable: false },
@@ -101,14 +102,28 @@ export async function getNflPlayerStats(playerId: number, competition: string, y
   })
   if (!season) throw new Error('Season not found')
 
-  const [stat, playerSeason] = await Promise.all([
+  const [stat, playerSeason, weeklyStats] = await Promise.all([
     prisma.nflPlayerStat.findFirst({ where: { playerId, seasonId: season.id, seasonType }, include: { player: true } }),
     prisma.playerSeason.findFirst({ where: { playerId, seasonId: season.id }, include: { team: true } }),
+    prisma.nflWeeklyStat.findMany({
+      where: { playerId, seasonId: season.id, seasonType },
+      orderBy: { week: 'asc' },
+    }),
   ])
 
   if (!stat || !playerSeason) throw new Error('Player not found')
 
   const position = stat.player.position ?? 'QB'
+
+  // Build weekly bar chart data (passing yards per week for QBs, rushing for RBs, receiving for WR/TE)
+  const weeklyChartStatKey = position === 'QB' ? 'passing_yards'
+    : position === 'RB' ? 'rushing_yards'
+    : 'receiving_yards'
+  const chartData = weeklyStats.map(w => ({
+    label: `Wk ${w.week}`,
+    value: Number((w.stats as Record<string, number>)[weeklyChartStatKey] ?? 0),
+  }))
+
   let scatterData: ScatterDataPoint[] | undefined
   if (position === 'QB') {
     const allQbStats = await prisma.nflPlayerStat.findMany({
@@ -151,7 +166,7 @@ export async function getNflPlayerStats(playerId: number, competition: string, y
       colorSecondary: playerSeason.team.colorSecondary ?? '#888888',
     },
     season: year,
-    chartData: [],
+    chartData,
     summaryStats: stat.stats as Record<string, number>,
     scatterData,
     scatterAxes: position === 'QB' ? { x: 'Passing Yards', y: 'TD / INT Ratio' } : undefined,

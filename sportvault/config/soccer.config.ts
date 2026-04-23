@@ -4,6 +4,7 @@ export const soccerConfig: SportConfig = {
   slug: 'soccer',
   name: 'Soccer',
   icon: '⚽',
+  accentColor: '#00B04F',
   competitions: [
     { slug: 'premier-league', name: 'Premier League', competitionType: 'league', group: 'League', seasonLabelFormat: 'year-range' },
     { slug: 'champions-league', name: 'Champions League', competitionType: 'cup', group: 'Cup', seasonLabelFormat: 'year-range' },

@@ -4,6 +4,7 @@ export const f1Config: SportConfig = {
   slug: 'f1',
   name: 'Formula 1',
   icon: '🏎️',
+  accentColor: '#E10600',
   competitions: [
     {
       slug: 'f1-championship',

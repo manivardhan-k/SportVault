@@ -8,39 +8,46 @@ interface YearSelectorProps {
   activeYear: number
   sport: string
   competition: string
+  accentColor: string
 }
 
-export function YearSelector({ seasons, activeYear, sport, competition }: YearSelectorProps) {
+export function YearSelector({ seasons, activeYear, sport, competition, accentColor }: YearSelectorProps) {
   return (
-    <aside className="w-32 shrink-0 border-l border-zinc-800 px-3 py-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Season</p>
-      <ul className="flex flex-col gap-1">
-        {seasons.map(s => {
-          const isDisabled = s.status !== 'completed'
-          const isActive = s.year === activeYear
+    <div className="flex items-center gap-0 ml-auto pr-6">
+      {seasons.map(s => {
+        const isActive = s.year === activeYear
+        const isDisabled = s.status !== 'completed'
 
-          if (isDisabled) {
-            return (
-              <li key={s.year} className="cursor-not-allowed rounded px-2 py-1 text-sm text-zinc-600">
-                {s.label}
-              </li>
-            )
-          }
-
+        if (isDisabled) {
           return (
-            <li key={s.year}>
-              <Link
-                href={`/${sport}/${competition}/${s.year}`}
-                className={`block rounded px-2 py-1 text-sm transition-colors ${
-                  isActive ? 'bg-zinc-700 text-white' : 'text-zinc-300 hover:bg-zinc-800'
-                }`}
-              >
-                {s.label}
-              </Link>
-            </li>
+            <span
+              key={s.year}
+              className="px-2 h-[36px] flex items-center text-xs cursor-not-allowed select-none"
+              style={{
+                fontFamily: 'var(--font-dm-mono), monospace',
+                color: '#9a9894',
+              }}
+            >
+              {s.label}
+            </span>
           )
-        })}
-      </ul>
-    </aside>
+        }
+
+        return (
+          <Link
+            key={s.year}
+            href={`/${sport}/${competition}/${s.year}`}
+            className="px-2 h-[36px] flex items-center text-xs transition-colors duration-200"
+            style={{
+              fontFamily: 'var(--font-dm-mono), monospace',
+              fontWeight: isActive ? 600 : 400,
+              color: isActive ? accentColor : '#9a9894',
+            }}
+          >
+            {s.label}
+          </Link>
+        )
+      })}
+    </div>
   )
 }

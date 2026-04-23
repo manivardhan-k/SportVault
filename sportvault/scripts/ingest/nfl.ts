@@ -33,13 +33,17 @@ export async function ingestNfl(year: number, seasonType: 'regular' | 'playoffs'
   console.log(`\n=== NFL ${year} ${seasonType} ===`)
 
   const csvPath = `/tmp/nfl_${year}_${seasonType}.csv`
+  const weeklyCsvPath = `/tmp/nfl_${year}_${seasonType}_weekly.csv`
   console.log('Running Python export...')
   const pyenvPy = `${process.env.HOME}/.pyenv/versions/3.11.14/bin/python3.11`
   const py = ['python3.11', pyenvPy, 'python3', 'python'].find(p => {
     try { execSync(`${p} -c "import nfl_data_py"`, { stdio: 'pipe' }); return true } catch { return false }
   }) ?? 'python3'
   const seasonTypeArg = seasonType === 'playoffs' ? 'POST' : 'REG'
-  execSync(`${py} scripts/ingest/fetch_nfl.py --year ${year} --output ${csvPath} --season-type ${seasonTypeArg}`, { stdio: 'inherit' })
+  execSync(
+    `${py} scripts/ingest/fetch_nfl.py --year ${year} --output ${csvPath} --weekly-output ${weeklyCsvPath} --season-type ${seasonTypeArg}`,
+    { stdio: 'inherit' }
+  )
 
   const sport = await upsertSport('nfl', 'NFL', '🏈')
   const slug = seasonType === 'playoffs' ? 'nfl-playoffs' : 'nfl-regular'
@@ -49,6 +53,9 @@ export async function ingestNfl(year: number, seasonType: 'regular' | 'playoffs'
 
   const raw = fs.readFileSync(csvPath, 'utf-8')
   const records = parse(raw, { columns: true, skip_empty_lines: true }) as Record<string, string>[]
+
+  // Build player_id → db player id map for weekly upsert
+  const playerIdMap = new Map<string, number>()
 
   let count = 0
   for (const row of records) {
@@ -75,6 +82,11 @@ export async function ingestNfl(year: number, seasonType: 'regular' | 'playoffs'
       passing_yards: Number(row.passing_yards ?? 0),
       passing_tds: Number(row.passing_tds ?? 0),
       interceptions: Number(row.interceptions ?? 0),
+      completions: Number(row.completions ?? 0),
+      attempts: Number(row.attempts ?? 0),
+      completion_pct: row.attempts && Number(row.attempts) > 0
+        ? Math.round((Number(row.completions ?? 0) / Number(row.attempts)) * 1000) / 10
+        : 0,
       passer_rating: Math.round(Number(row.passer_rating ?? 0) * 10) / 10,
       rushing_yards: Number(row.rushing_yards ?? 0),
       rushing_tds: Number(row.rushing_tds ?? 0),
@@ -93,8 +105,44 @@ export async function ingestNfl(year: number, seasonType: 'regular' | 'playoffs'
     } else {
       await prisma.nflPlayerStat.create({ data: statData })
     }
+
+    playerIdMap.set(row.player_id, player.id)
     count++
   }
 
   console.log(`Done: ${count} skill position players`)
+
+  // Ingest weekly stats
+  if (fs.existsSync(weeklyCsvPath)) {
+    console.log('Ingesting weekly stats...')
+    const weeklyRaw = fs.readFileSync(weeklyCsvPath, 'utf-8')
+    const weeklyRecords = parse(weeklyRaw, { columns: true, skip_empty_lines: true }) as Record<string, string>[]
+
+    let weeklyCount = 0
+    for (const row of weeklyRecords) {
+      const dbPlayerId = playerIdMap.get(row.player_id)
+      if (!dbPlayerId) continue
+      const week = Number(row.week)
+      if (!week) continue
+
+      const weekStats: Record<string, number> = {}
+      for (const col of ['passing_yards','passing_tds','interceptions','completions','attempts',
+                          'completion_percentage','passer_rating','rushing_yards','rushing_tds',
+                          'receptions','receiving_yards','receiving_tds','fantasy_points']) {
+        if (row[col] !== undefined && row[col] !== '') weekStats[col] = Number(row[col])
+      }
+      // Compute completion_pct if not present
+      if (!weekStats.completion_percentage && weekStats.attempts > 0) {
+        weekStats.completion_pct = Math.round((weekStats.completions / weekStats.attempts) * 1000) / 10
+      }
+
+      await prisma.nflWeeklyStat.upsert({
+        where: { playerId_seasonId_seasonType_week: { playerId: dbPlayerId, seasonId: season.id, seasonType, week } },
+        create: { playerId: dbPlayerId, seasonId: season.id, seasonType, week, stats: weekStats },
+        update: { stats: weekStats },
+      })
+      weeklyCount++
+    }
+    console.log(`Done: ${weeklyCount} weekly stat rows`)
+  }
 }

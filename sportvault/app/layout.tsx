@@ -1,9 +1,20 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { DM_Sans, DM_Mono } from 'next/font/google'
 import { SportTabs } from '@/components/layout/SportTabs'
 import './globals.css'
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  weight: ['300', '400', '500', '600'],
+  display: 'swap',
+})
+const dmMono = DM_Mono({
+  subsets: ['latin'],
+  variable: '--font-dm-mono',
+  weight: ['400', '500'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'SportVault',
@@ -12,12 +23,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} dark h-full`}>
-      <body className="flex min-h-full flex-col bg-zinc-950 font-sans text-white antialiased">
-        <header className="sticky top-0 z-10 bg-zinc-950/95 backdrop-blur">
-          <div className="flex items-center gap-2 px-4 py-3">
-            <span className="text-lg font-bold tracking-tight">SportVault</span>
-          </div>
+    <html lang="en" className={`${dmSans.variable} ${dmMono.variable} h-full`}>
+      <body
+        className="flex min-h-full flex-col bg-sv-bg text-sv-text-primary antialiased"
+        style={{ fontFamily: 'var(--font-dm-sans), DM Sans, sans-serif' }}
+      >
+        <header className="sticky top-0 z-20 bg-sv-surface border-b border-sv-divider">
           <SportTabs />
         </header>
         <main className="flex flex-1 flex-col">{children}</main>

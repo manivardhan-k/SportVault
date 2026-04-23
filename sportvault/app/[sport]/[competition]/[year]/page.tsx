@@ -60,20 +60,28 @@ export default async function LeaderboardPage({
   }))
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col">
+      {/* Competition tabs + year selector in same 36px bar */}
+      <div className="sticky top-[52px] z-[15] flex items-center border-b border-sv-divider bg-sv-surface overflow-hidden">
         <CompetitionSelector sportConfig={config} defaultYear={year} seededSlugs={seededSlugs} />
-        <div className="flex-1 overflow-y-auto">
-          <LeaderboardTable
-            data={standingsData!}
-            sport={sport}
-            competition={competition}
-            year={year}
-            chartConfig={config.expandedChartConfig}
-          />
-        </div>
+        <YearSelector
+          seasons={seasons}
+          activeYear={year}
+          sport={sport}
+          competition={competition}
+          accentColor={config.accentColor}
+        />
       </div>
-      <YearSelector seasons={seasons} activeYear={year} sport={sport} competition={competition} />
+      <div className="flex-1">
+        <LeaderboardTable
+          data={standingsData!}
+          sport={sport}
+          competition={competition}
+          year={year}
+          chartConfig={config.expandedChartConfig}
+          accentColor={config.accentColor}
+        />
+      </div>
     </div>
   )
 }

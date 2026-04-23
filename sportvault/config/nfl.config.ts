@@ -46,6 +46,7 @@ const wrteGroup: PositionGroupConfig = {
 }
 
 export const nflConfig: SportConfig = {
+  accentColor: '#013369',
   slug: 'nfl',
   name: 'NFL',
   icon: '🏈',

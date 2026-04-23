@@ -21,11 +21,11 @@ export function StatsBarChart({ summaryStats, teamColor, name, excludeKeys = ['G
       <p className="mb-1 text-xs text-zinc-400">{name} — season totals</p>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data} margin={{ left: -10 }}>
-          <XAxis dataKey="label" tick={{ fill: '#a1a1aa', fontSize: 11 }} />
-          <YAxis tick={{ fill: '#a1a1aa', fontSize: 11 }} />
+          <XAxis dataKey="label" tick={{ fill: '#9a9894', fontSize: 11 }} />
+          <YAxis tick={{ fill: '#9a9894', fontSize: 11 }} />
           <Tooltip
-            contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 6 }}
-            labelStyle={{ color: '#e4e4e7' }}
+            contentStyle={{ background: '#ffffff', border: '1px solid #e4e3df', borderRadius: 6 }}
+            labelStyle={{ color: '#5a5955' }}
           />
           <Bar dataKey="value" radius={[3, 3, 0, 0]}>
             {data.map((_, i) => <Cell key={i} fill={teamColor} fillOpacity={0.85} />)}
