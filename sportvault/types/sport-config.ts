@@ -2,13 +2,15 @@ export interface ColumnDef {
   key: string
   label: string
   sortable: boolean
+  tooltip?: string
 }
 
 export interface ChartConfig {
-  type: 'line' | 'bar' | 'radar' | 'line+radar' | 'scatter'
+  type: 'line' | 'bar' | 'radar' | 'line+radar' | 'scatter' | 'bar-tabs' | 'radar+bar' | 'radar-tabs'
   primaryDataKey: string
   label: string
   dualMode?: boolean
+  excludeKeys?: string[]
 }
 
 export interface CompetitionConfig {
@@ -22,6 +24,7 @@ export interface CompetitionConfig {
 export interface PositionGroupConfig {
   key: string
   label: string
+  aliases?: string[]
   columns: ColumnDef[]
   defaultSortKey: string
 }

@@ -1,0 +1,2 @@
+export const NFL_SEASONAL_BATCH_SIZE = 100
+export const NFL_WEEKLY_BATCH_SIZE = 25

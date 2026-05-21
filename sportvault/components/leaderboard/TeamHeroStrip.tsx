@@ -1,11 +1,8 @@
 'use client'
 
-const teamStatsBySport: Record<string, Array<{ key: string; label: string }>> = {
-  f1:     [{ key: 'points', label: 'PTS' }, { key: 'wins', label: 'W' }, { key: 'podiums', label: 'POD' }],
-  soccer: [{ key: 'goals', label: 'G' }, { key: 'assists', label: 'A' }],
-  nfl:    [{ key: 'passing_yards', label: 'Pass YDS' }, { key: 'passing_tds', label: 'TD' }],
-  nba:    [{ key: 'ppg', label: 'PPG' }],
-}
+import { fmtVal } from '@/lib/format'
+import { heroConfigForRow } from './HeroStrip'
+import type { LeaderboardRow } from '@/types/api'
 
 interface TeamHeroStripProps {
   teamName: string
@@ -14,20 +11,28 @@ interface TeamHeroStripProps {
   sport: string
   teamStats: Record<string, number>
   playerCount: number
+  heroRow: LeaderboardRow
+  topOffset?: number
 }
 
-export function TeamHeroStrip({ teamName, teamColor, accentColor, sport, teamStats }: TeamHeroStripProps) {
-  const statDefs = teamStatsBySport[sport] ?? []
+export function TeamHeroStrip({ teamName, teamColor, accentColor, sport, teamStats, heroRow, topOffset = 88 }: TeamHeroStripProps) {
+  const config = heroConfigForRow(sport, heroRow)
+  if (!config) return null
+  
+  const statDefs = [
+    { key: config.primary, label: config.label },
+    ...config.secondary
+  ]
 
   return (
     <div
-      className="bg-sv-surface sticky top-0 z-[9] flex-shrink-0 flex items-center h-[40px] px-6"
-      style={{ borderBottom: `1px solid #e4e3df`, borderLeft: `5px solid ${teamColor}` }}
+      className="sticky z-[14] flex h-[40px] flex-shrink-0 items-center overflow-hidden bg-sv-surface px-3 sm:px-6"
+      style={{ top: topOffset, borderBottom: `1px solid #e4e3df`, borderLeft: `4px solid ${teamColor}`, boxShadow: '0 8px 22px rgba(17,17,16,0.03)' }}
     >
       {/* Champion badge */}
       <div className="flex items-center gap-[6px] mr-3">
         <span
-          className="text-[10px] tracking-[0.06em]"
+          className="rounded-full border border-sv-divider bg-sv-surface-warm px-2 py-1 text-[10px] tracking-[0.06em]"
           style={{ fontFamily: 'var(--font-dm-mono), monospace', color: '#9a9894' }}
         >
           T1
@@ -37,23 +42,23 @@ export function TeamHeroStrip({ teamName, teamColor, accentColor, sport, teamSta
 
       {/* Team name */}
       <span
-        className="text-[13px] font-semibold mr-4"
+        className="mr-2 min-w-0 truncate text-[12px] font-semibold sm:mr-4 sm:text-[13px]"
         style={{ color: '#111110' }}
       >
         {teamName}
       </span>
 
-      <div className="w-px h-[16px] bg-sv-divider mr-4" />
+      <div className="hidden sm:block w-px h-[16px] bg-sv-divider mr-4" />
 
       {/* Aggregated stats */}
-      <div className="flex items-center gap-4">
+      <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0 sm:gap-4">
         {statDefs.map(s => (
-          <div key={s.key} className="flex items-baseline gap-1">
+          <div key={s.key} className="flex items-baseline gap-1 rounded-full border border-sv-divider bg-sv-surface-warm px-2 py-1">
             <span
               className="text-[13px] font-semibold"
               style={{ fontFamily: 'var(--font-dm-mono), monospace', color: '#111110' }}
             >
-              {teamStats[s.key] ?? '—'}
+              {fmtVal(teamStats[s.key], s.key)}
             </span>
             <span
               className="text-[10px]"

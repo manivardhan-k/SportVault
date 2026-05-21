@@ -13,8 +13,8 @@ model Sport {
   name         String        @db.VarChar(100)
   icon         String?       @db.VarChar(50)
   competitions Competition[]
-  teams        Team[]
   players      Player[]
+  teams        Team[]
 
   @@map("sports")
 }
@@ -33,20 +33,26 @@ model Competition {
 }
 
 model Season {
-  id            Int                @id @default(autoincrement())
-  competitionId Int
-  year          Int
-  label         String?            @db.VarChar(20)
-  status        String             @default("completed") @db.VarChar(20)
-  competition   Competition        @relation(fields: [competitionId], references: [id])
-  playerSeasons PlayerSeason[]
-  f1Standings   F1DriverStanding[]
-  f1RaceResults F1RaceResult[]
-  soccerStats   SoccerPlayerStat[]
-  nflStats       NflPlayerStat[]
-  nflWeeklyStats NflWeeklyStat[]
-  nbaStats       NbaPlayerStat[]
-  teamStandings  TeamStanding[]
+  id                Int                 @id @default(autoincrement())
+  competitionId     Int
+  year              Int
+  label             String?             @db.VarChar(20)
+  status            String              @default("completed") @db.VarChar(20)
+  cricketMatchStats CricketMatchStat[]
+  cricketStats      CricketPlayerStat[]
+  f1Standings       F1DriverStanding[]
+  f1RaceResults     F1RaceResult[]
+  mmaStats          MmaFighterStat[]
+  nbaStats          NbaPlayerStat[]
+  nbaPlayoffSeries  NbaPlayoffSeries[]
+  nflStats          NflPlayerStat[]
+  nflPlayoffGames   NflPlayoffGame[]
+  nflWeeklyStats    NflWeeklyStat[]
+  playerSeasons     PlayerSeason[]
+  competition       Competition         @relation(fields: [competitionId], references: [id])
+  soccerStats       SoccerPlayerStat[]
+  teamStandings     TeamStanding[]
+  tennisStats       TennisPlayerStat[]
 
   @@unique([competitionId, year])
   @@index([competitionId, year])
@@ -54,40 +60,52 @@ model Season {
 }
 
 model Team {
-  id             Int            @id @default(autoincrement())
-  sportId        Int
-  externalId     String?        @db.VarChar(100)
-  name           String         @db.VarChar(100)
-  shortName      String?        @db.VarChar(30)
-  colorPrimary   String?        @db.VarChar(7)
-  colorSecondary String?        @db.VarChar(7)
-  logoUrl        String?        @db.VarChar(255)
-  sport          Sport          @relation(fields: [sportId], references: [id])
-  playerSeasons  PlayerSeason[]
-  teamStandings  TeamStanding[]
+  id               Int                @id @default(autoincrement())
+  sportId          Int
+  externalId       String?            @db.VarChar(100)
+  name             String             @db.VarChar(100)
+  shortName        String?            @db.VarChar(30)
+  colorPrimary     String?            @db.VarChar(7)
+  colorSecondary   String?            @db.VarChar(7)
+  logoUrl          String?            @db.VarChar(255)
+  team1Series      NbaPlayoffSeries[] @relation("Team1")
+  team2Series      NbaPlayoffSeries[] @relation("Team2")
+  winnerSeries     NbaPlayoffSeries[] @relation("Winner")
+  nflBracketTeam1  NflPlayoffGame[]   @relation("NflBracketTeam1")
+  nflBracketTeam2  NflPlayoffGame[]   @relation("NflBracketTeam2")
+  nflBracketWinner NflPlayoffGame[]   @relation("NflBracketWinner")
+  playerSeasons    PlayerSeason[]
+  teamStandings    TeamStanding[]
+  sport            Sport              @relation(fields: [sportId], references: [id])
 
+  @@unique([sportId, externalId])
   @@map("teams")
 }
 
 model Player {
-  id            Int                @id @default(autoincrement())
-  sportId       Int
-  externalId    String?            @db.VarChar(100)
-  firstName     String?            @db.VarChar(100)
-  lastName      String             @db.VarChar(100)
-  nationality   String?            @db.VarChar(60)
-  dateOfBirth   DateTime?          @db.Date
-  position      String?            @db.VarChar(30)
-  number        Int?
-  sport         Sport              @relation(fields: [sportId], references: [id])
-  playerSeasons PlayerSeason[]
-  f1Standings   F1DriverStanding[]
-  f1RaceResults F1RaceResult[]
-  soccerStats   SoccerPlayerStat[]
-  nflStats       NflPlayerStat[]
-  nflWeeklyStats NflWeeklyStat[]
-  nbaStats       NbaPlayerStat[]
+  id                Int                 @id @default(autoincrement())
+  sportId           Int
+  externalId        String?             @db.VarChar(100)
+  firstName         String?             @db.VarChar(100)
+  lastName          String              @db.VarChar(100)
+  nationality       String?             @db.VarChar(60)
+  dateOfBirth       DateTime?           @db.Date
+  position          String?             @db.VarChar(30)
+  number            Int?
+  cricketMatchStats CricketMatchStat[]
+  cricketStats      CricketPlayerStat[]
+  f1Standings       F1DriverStanding[]
+  f1RaceResults     F1RaceResult[]
+  mmaStats          MmaFighterStat[]
+  nbaStats          NbaPlayerStat[]
+  nflStats          NflPlayerStat[]
+  nflWeeklyStats    NflWeeklyStat[]
+  playerSeasons     PlayerSeason[]
+  sport             Sport               @relation(fields: [sportId], references: [id])
+  soccerStats       SoccerPlayerStat[]
+  tennisStats       TennisPlayerStat[]
 
+  @@unique([sportId, externalId])
   @@map("players")
 }
 
@@ -97,8 +115,8 @@ model PlayerSeason {
   teamId   Int
   seasonId Int
   player   Player @relation(fields: [playerId], references: [id])
-  team     Team   @relation(fields: [teamId], references: [id])
   season   Season @relation(fields: [seasonId], references: [id])
+  team     Team   @relation(fields: [teamId], references: [id])
 
   @@unique([playerId, seasonId])
   @@index([seasonId])
@@ -133,9 +151,9 @@ model F1RaceResult {
   finishPosition Int?
   gridPosition   Int?
   points         Decimal? @db.Decimal(5, 2)
-  sprintPoints   Decimal? @db.Decimal(5, 2)
   status         String?  @db.VarChar(50)
   fastestLap     Boolean  @default(false)
+  sprintPoints   Decimal? @db.Decimal(5, 2)
   player         Player   @relation(fields: [playerId], references: [id])
   season         Season   @relation(fields: [seasonId], references: [id])
 
@@ -215,6 +233,52 @@ model NbaPlayerStat {
   @@map("nba_player_stats")
 }
 
+model NbaPlayoffSeries {
+  id           Int    @id @default(autoincrement())
+  seasonId     Int
+  roundNumber  Int
+  conference   String @db.VarChar(10)
+  seriesOrder  Int
+  highSeed     Int?
+  lowSeed      Int?
+  team1Id      Int
+  team2Id      Int
+  team1Wins    Int    @default(0)
+  team2Wins    Int    @default(0)
+  winnerTeamId Int?
+  season       Season @relation(fields: [seasonId], references: [id])
+  team1        Team   @relation("Team1", fields: [team1Id], references: [id])
+  team2        Team   @relation("Team2", fields: [team2Id], references: [id])
+  winner       Team?  @relation("Winner", fields: [winnerTeamId], references: [id])
+
+  @@unique([seasonId, conference, roundNumber, seriesOrder])
+  @@index([seasonId, roundNumber])
+  @@map("nba_playoff_series")
+}
+
+model NflPlayoffGame {
+  id           Int       @id @default(autoincrement())
+  seasonId     Int
+  roundNumber  Int
+  conference   String    @db.VarChar(10)
+  gameOrder    Int
+  eventId      String?   @db.VarChar(60)
+  gameDate     DateTime?
+  team1Id      Int
+  team2Id      Int
+  team1Score   Int       @default(0)
+  team2Score   Int       @default(0)
+  winnerTeamId Int?
+  season       Season    @relation(fields: [seasonId], references: [id])
+  team1        Team      @relation("NflBracketTeam1", fields: [team1Id], references: [id])
+  team2        Team      @relation("NflBracketTeam2", fields: [team2Id], references: [id])
+  winner       Team?     @relation("NflBracketWinner", fields: [winnerTeamId], references: [id])
+
+  @@unique([seasonId, conference, roundNumber, gameOrder])
+  @@index([seasonId, roundNumber])
+  @@map("nfl_playoff_games")
+}
+
 model TeamStanding {
   id       Int    @id @default(autoincrement())
   teamId   Int
@@ -226,9 +290,98 @@ model TeamStanding {
   lost     Int?
   points   Int?
   extra    Json   @default("{}")
-  team     Team   @relation(fields: [teamId], references: [id])
   season   Season @relation(fields: [seasonId], references: [id])
+  team     Team   @relation(fields: [teamId], references: [id])
 
   @@unique([teamId, seasonId])
   @@map("team_standings")
+}
+
+model CricketPlayerStat {
+  id         Int    @id @default(autoincrement())
+  playerId   Int
+  seasonId   Int
+  format     String @db.VarChar(20)
+  matches    Int    @default(0)
+  innings    Int    @default(0)
+  runs       Int?
+  average    Float?
+  strikeRate Float?
+  fifties    Int?
+  hundreds   Int?
+  wickets    Int?
+  economy    Float?
+  bowlAvg    Float?
+  player     Player @relation(fields: [playerId], references: [id])
+  season     Season @relation(fields: [seasonId], references: [id])
+
+  @@unique([playerId, seasonId, format])
+  @@index([seasonId, format])
+  @@map("cricket_player_stats")
+}
+
+model CricketMatchStat {
+  id           Int       @id @default(autoincrement())
+  playerId     Int
+  seasonId     Int
+  format       String    @db.VarChar(20)
+  matchId      String    @db.VarChar(120)
+  matchDate    DateTime? @db.Date
+  opponent     String?   @db.VarChar(100)
+  runs         Int       @default(0)
+  ballsFaced   Int       @default(0)
+  dismissed    Boolean   @default(false)
+  wickets      Int       @default(0)
+  runsConceded Int       @default(0)
+  ballsBowled  Int       @default(0)
+  economy      Float?
+  player       Player    @relation(fields: [playerId], references: [id])
+  season       Season    @relation(fields: [seasonId], references: [id])
+
+  @@unique([playerId, seasonId, matchId])
+  @@index([seasonId, format, matchDate])
+  @@map("cricket_match_stats")
+}
+
+model TennisPlayerStat {
+  id             Int    @id @default(autoincrement())
+  playerId       Int
+  seasonId       Int
+  tour           String @db.VarChar(10)
+  surface        String @db.VarChar(20)
+  matches        Int    @default(0)
+  wins           Int    @default(0)
+  aces           Int?
+  doubleFaults   Int?
+  firstServePct  Float?
+  firstSrvWonPct Float?
+  returnWonPct   Float?
+  rankYearEnd    Int?
+  player         Player @relation(fields: [playerId], references: [id])
+  season         Season @relation(fields: [seasonId], references: [id])
+
+  @@unique([playerId, seasonId, tour, surface])
+  @@index([seasonId, tour, surface])
+  @@map("tennis_player_stats")
+}
+
+model MmaFighterStat {
+  id               Int    @id @default(autoincrement())
+  playerId         Int
+  seasonId         Int
+  weightClass      String @db.VarChar(40)
+  fights           Int    @default(0)
+  wins             Int    @default(0)
+  losses           Int    @default(0)
+  sigStrikesPerMin Float?
+  sigStrikeAcc     Float?
+  takedownAvg      Float?
+  takedownAcc      Float?
+  subAvg           Float?
+  player           Player @relation(fields: [playerId], references: [id])
+  season           Season @relation(fields: [seasonId], references: [id])
+
+  @@unique([playerId, seasonId, weightClass])
+  @@index([seasonId, weightClass])
+  @@map("mma_fighter_stats")
 }

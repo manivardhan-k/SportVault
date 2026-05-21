@@ -4,6 +4,59 @@ import { upsertSport, upsertCompetition, upsertSeason, upsertTeam, upsertPlayer 
 
 const BASE = 'https://api.jolpi.ca/ergast/f1'
 
+type JolpicaDriver = {
+  driverId: string
+  givenName: string
+  familyName: string
+  nationality: string
+}
+
+type JolpicaConstructor = {
+  constructorId: string
+  name: string
+}
+
+type JolpicaStanding = {
+  position: string
+  points: string
+  wins: string
+  Driver: JolpicaDriver
+  Constructors: JolpicaConstructor[]
+}
+
+type JolpicaRaceResult = {
+  position: string
+  grid: string
+  points: string
+  status: string
+  Driver: JolpicaDriver
+  FastestLap?: { rank?: string }
+}
+
+type JolpicaSprintResult = {
+  points: string
+  Driver: JolpicaDriver
+}
+
+type JolpicaRace = {
+  round: string
+  raceName: string
+  Results?: JolpicaRaceResult[]
+  SprintResults?: JolpicaSprintResult[]
+}
+
+type JolpicaResponse = {
+  MRData?: {
+    total?: string
+    StandingsTable?: {
+      StandingsLists?: Array<{ DriverStandings?: JolpicaStanding[] }>
+    }
+    RaceTable?: {
+      Races?: JolpicaRace[]
+    }
+  }
+}
+
 const TEAM_COLORS: Record<string, string> = {
   'Red Bull': '#3671C6',
   'Ferrari': '#E8002D',
@@ -22,12 +75,12 @@ const TEAM_COLORS: Record<string, string> = {
 export async function ingestF1(year: number) {
   console.log(`\n=== F1 ${year} ===`)
 
-  const sport = await upsertSport('f1', 'Formula 1', '🏎️')
+  const sport = await upsertSport('f1', 'Formula 1', 'F1')
   const comp = await upsertCompetition(sport.id, 'f1-championship', 'Championship', 'championship')
   const season = await upsertSeason(comp.id, year, String(year))
 
   // Driver standings
-  const standingsData = await fetchWithDelay(`${BASE}/${year}/driverStandings.json`) as any
+  const standingsData = await fetchWithDelay(`${BASE}/${year}/driverStandings.json`) as JolpicaResponse
   const standings = standingsData.MRData?.StandingsTable?.StandingsLists?.[0]?.DriverStandings ?? []
 
   for (const entry of standings) {
@@ -61,10 +114,10 @@ export async function ingestF1(year: number) {
   }
 
   // Race results (for charts) — paginate since Jolpica returns ~6 per page
-  const races: any[] = []
+  const races: JolpicaRace[] = []
   let offset = 0
   while (true) {
-    const page = await fetchWithDelay(`${BASE}/${year}/results.json?limit=100&offset=${offset}`, {}, 300) as any
+    const page = await fetchWithDelay(`${BASE}/${year}/results.json?limit=100&offset=${offset}`, {}, 300) as JolpicaResponse
     const batch = page.MRData?.RaceTable?.Races ?? []
     races.push(...batch)
     const total = Number(page.MRData?.total ?? 0)
@@ -73,7 +126,7 @@ export async function ingestF1(year: number) {
   }
 
   for (const race of races) {
-    for (const result of race.Results) {
+    for (const result of race.Results ?? []) {
       const player = await prisma.player.findFirst({
         where: { sportId: sport.id, externalId: result.Driver.driverId },
       })
@@ -104,10 +157,10 @@ export async function ingestF1(year: number) {
   }
 
   // Sprint results — paginate same way
-  const sprintRaces: any[] = []
+  const sprintRaces: JolpicaRace[] = []
   let sprintOffset = 0
   while (true) {
-    const page = await fetchWithDelay(`${BASE}/${year}/sprint.json?limit=100&offset=${sprintOffset}`, {}, 300) as any
+    const page = await fetchWithDelay(`${BASE}/${year}/sprint.json?limit=100&offset=${sprintOffset}`, {}, 300) as JolpicaResponse
     const batch = page.MRData?.RaceTable?.Races ?? []
     sprintRaces.push(...batch)
     const total = Number(page.MRData?.total ?? 0)

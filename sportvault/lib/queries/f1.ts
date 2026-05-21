@@ -51,9 +51,23 @@ export async function getF1Standings(year: number): Promise<LeaderboardResponse>
         wins: s.wins,
         podiums: derived.podiums,
         poles: derived.poles,
+        dnfs: derived.dnfs,
       },
     }
   })
+
+  const constructorPoints = new Map<string, number>()
+  for (const standing of standings) {
+    const team = psMap.get(standing.playerId)
+    const teamName = team?.name ?? 'Unknown'
+    constructorPoints.set(teamName, (constructorPoints.get(teamName) ?? 0) + Number(standing.totalPoints ?? 0))
+  }
+
+  const teamRankings = Object.fromEntries(
+    Array.from(constructorPoints.entries())
+      .sort(([, pointsA], [, pointsB]) => pointsB - pointsA)
+      .map(([teamName], index) => [teamName, index + 1])
+  )
 
   return {
     sport: 'f1',
@@ -69,6 +83,7 @@ export async function getF1Standings(year: number): Promise<LeaderboardResponse>
       { key: 'poles', label: 'Poles', sortable: true },
     ],
     rows,
+    teamRankings,
   }
 }
 

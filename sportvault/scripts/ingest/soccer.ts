@@ -3,7 +3,26 @@ import { fetchWithDelay } from './utils/http'
 import { upsertSport, upsertCompetition, upsertSeason, upsertTeam, upsertPlayer } from './utils/upsert'
 
 const BASE = 'https://api.football-data.org/v4'
-const DELAY = 6100  // 10 req/min rate limit
+
+type FootballScorer = {
+  player: {
+    id: number
+    name?: string
+    nationality?: string
+  }
+  team: {
+    id: number
+    name: string
+    shortName?: string
+  }
+  numberOfGoals?: number
+  numberOfGoalAssists?: number
+  playedMatches?: number
+}
+
+type FootballScorersResponse = {
+  scorers?: FootballScorer[]
+}
 
 const COMPETITIONS: Record<string, { id: string; name: string; type: string }> = {
   'premier-league': { id: 'PL', name: 'Premier League', type: 'league' },
@@ -38,22 +57,23 @@ export async function ingestSoccer(competitionKey: string, year: number) {
 
   console.log(`\n=== Soccer ${compMeta.name} ${label} ===`)
 
-  const sport = await upsertSport('soccer', 'Soccer', '⚽')
+  const sport = await upsertSport('soccer', 'Soccer', 'SOC')
   const comp = await upsertCompetition(sport.id, competitionKey, compMeta.name, compMeta.type)
   const season = await upsertSeason(comp.id, year, label)
 
   const scorersData = await fetchWithDelay(
     `${BASE}/competitions/${compMeta.id}/scorers?season=${year}&limit=50`,
     headers
-  ) as any
+  ) as FootballScorersResponse
 
   for (const entry of scorersData.scorers ?? []) {
     const p = entry.player
     const t = entry.team
 
     const team = await upsertTeam(sport.id, String(t.id), t.name, t.shortName ?? t.name.substring(0, 15), TEAM_COLORS[t.name] ?? '#888888')
-    const nameParts = (p.name ?? '').split(' ')
-    const lastName = nameParts.pop() ?? p.name
+    const playerName = p.name ?? `Player ${p.id}`
+    const nameParts = playerName.split(' ')
+    const lastName = nameParts.pop() ?? playerName
     const firstName = nameParts.join(' ')
     const player = await upsertPlayer(sport.id, String(p.id), firstName, lastName, p.nationality ?? '')
 
@@ -76,7 +96,7 @@ export async function ingestSoccer(competitionKey: string, year: number) {
       await prisma.soccerPlayerStat.create({ data: statData })
     }
 
-    console.log(`  ${p.name} — ${entry.numberOfGoals}G ${entry.numberOfGoalAssists ?? 0}A`)
+    console.log(`  ${playerName} - ${entry.numberOfGoals}G ${entry.numberOfGoalAssists ?? 0}A`)
     await new Promise(r => setTimeout(r, 200))
   }
 

@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { getSportConfig } from '@/config/sports'
 import { prisma } from '@/lib/db'
 
+const FALLBACK_YEAR = 2024
+
 export default async function SportPage({ params }: { params: Promise<{ sport: string }> }) {
   const { sport } = await params
   const config = getSportConfig(sport)
@@ -23,6 +25,10 @@ export default async function SportPage({ params }: { params: Promise<{ sport: s
     }
   }
 
-  if (!targetComp || !targetSeason) redirect('/f1')
+  if (!targetComp || !targetSeason) {
+    const firstCompetition = config.competitions[0]
+    if (!firstCompetition) redirect('/f1')
+    redirect(`/${sport}/${firstCompetition.slug}/${FALLBACK_YEAR}`)
+  }
   redirect(`/${sport}/${targetComp.slug}/${targetSeason.year}`)
 }

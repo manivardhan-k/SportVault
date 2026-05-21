@@ -1,0 +1,9 @@
+info,match_type,T20
+info,date,2024/06/02
+info,team,Domestic A
+info,team,Domestic B
+info,player,Domestic A,Domestic Batter
+info,player,Domestic B,Domestic Bowler
+info,registry,people,Domestic Batter,db1
+info,registry,people,Domestic Bowler,dw1
+ball,1,0.1,Domestic A,Domestic Batter,,Domestic Bowler,6,0,0,0,0,0,,,

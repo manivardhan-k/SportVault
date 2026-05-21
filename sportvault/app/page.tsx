@@ -1,132 +1,160 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { LampContainer } from '@/components/ui/lamp'
-import { GooeyText } from '@/components/ui/gooey-text'
+import { motion, useReducedMotion } from 'framer-motion'
+import { SPORT_CONFIGS } from '@/config/sports'
 
-const SPORTS = [
-  { slug: 'f1',     name: 'Formula 1', accent: '#E10600' },
-  { slug: 'soccer', name: 'Soccer',    accent: '#00B04F' },
-  { slug: 'nfl',    name: 'NFL',       accent: '#013369' },
-  { slug: 'nba',    name: 'NBA',       accent: '#C9082A' },
-]
+const DISABLED_SPORTS = new Set(['soccer', 'mma'])
 
-const SPORT_WORDS = ['Formula 1', 'Soccer', 'NFL', 'NBA']
+const SPORTS = SPORT_CONFIGS.map(config => {
+  const competitions = config.competitions.map(competition => competition.name)
+  const isDisabled = DISABLED_SPORTS.has(config.slug)
+
+  return {
+    slug: config.slug,
+    name: config.name,
+    accent: config.accentColor,
+    icon: config.icon,
+    competitions,
+    status: isDisabled ? 'Paused' : 'Live',
+    range: config.slug === 'mma' ? '2024' : '2018-2024',
+    primaryMetric: config.rankingLabel,
+    isDisabled,
+  }
+})
+
+const liveCount = SPORTS.filter(sport => !sport.isDisabled).length
+const competitionCount = SPORTS.reduce((sum, sport) => sum + (sport.isDisabled ? 0 : sport.competitions.length), 0)
 
 export default function HomePage() {
   const router = useRouter()
+  const shouldReduce = useReducedMotion()
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center min-h-[calc(100vh-52px)]">
-      <LampContainer accentColor="#d97706">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-          className="mb-6 flex items-center gap-2 rounded-full px-4 py-1.5 border border-sv-divider bg-sv-surface"
-        >
-          <span
-            className="text-[10px] tracking-[0.14em] text-sv-text-muted"
-            style={{ fontFamily: 'var(--font-dm-mono), monospace' }}
-          >
-            HISTORICAL SPORTS DATA
-          </span>
-        </motion.div>
-
-        {/* Hero heading with GooeyText morph */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="flex flex-col items-center gap-1 mb-4"
-        >
-          <h1 className="text-[52px] font-bold leading-[1.05] tracking-tight text-sv-text-primary text-center">
-            Every stat.
-          </h1>
-          <div className="flex items-baseline gap-3">
-            <span className="text-[52px] font-bold leading-[1.05] tracking-tight text-sv-text-primary">
-              Every
-            </span>
-            <GooeyText
-              words={SPORT_WORDS}
-              interval={2600}
-              textClassName="text-[52px] leading-[1.05] tracking-tight text-sv-amber"
-            />
-            <span className="text-[52px] font-bold leading-[1.05] tracking-tight text-sv-text-primary">
-              season.
-            </span>
-          </div>
-        </motion.div>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.0, duration: 0.5 }}
-          className="text-[15px] text-sv-text-secondary text-center max-w-[400px] mb-10 leading-relaxed"
-        >
-          Deep-dive leaderboards, season charts, and player profiles for F1, Soccer, NFL, and NBA.
-        </motion.p>
-
-        {/* Sport cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.1, duration: 0.5 }}
-          className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-        >
-          {SPORTS.map((sport, i) => (
-            <motion.button
-              key={sport.slug}
-              onClick={() => router.push(`/${sport.slug}`)}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.15 + i * 0.07, duration: 0.4 }}
-              whileHover={{ y: -3, boxShadow: `0 8px 28px ${sport.accent}28` }}
-              whileTap={{ scale: 0.97 }}
-              className="flex flex-col items-center gap-3 rounded-2xl px-8 py-6 bg-sv-surface border border-sv-divider cursor-pointer"
-              style={{ borderTop: `3px solid ${sport.accent}` }}
-            >
-              <motion.div
-                className="w-2 h-2 rounded-full"
-                style={{ background: sport.accent }}
-                animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
-                transition={{ repeat: Infinity, duration: 2.2 + i * 0.3, ease: 'easeInOut' }}
-              />
-              <span
-                className="text-[12px] font-semibold tracking-[0.1em]"
-                style={{ color: sport.accent, fontFamily: 'var(--font-dm-mono), monospace' }}
-              >
-                {sport.name.toUpperCase()}
+    <div className="flex flex-1 flex-col px-4 py-8 sm:px-8 sm:py-12">
+      <motion.section
+        initial={shouldReduce ? false : { opacity: 0, y: 14 }}
+        animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col justify-center gap-8"
+      >
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1.08fr)] lg:items-end">
+          <div className="flex flex-col gap-7">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="sv-data-chip sv-meta-label">
+                SportVault Archive
               </span>
-            </motion.button>
-          ))}
-        </motion.div>
+              <span className="sv-data-chip sv-meta-label">
+                {liveCount} live sports
+              </span>
+            </div>
 
-        {/* Cue */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.6, duration: 0.5 }}
-          className="mt-14 flex flex-col items-center gap-1"
-        >
-          <span
-            className="text-[10px] tracking-[0.12em] text-sv-text-muted"
-            style={{ fontFamily: 'var(--font-dm-mono), monospace' }}
-          >
-            SELECT A SPORT TO EXPLORE
-          </span>
-          <motion.span
-            animate={{ y: [0, 4, 0] }}
-            transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
-            className="text-sv-text-muted text-xs mt-0.5"
-          >
-            ▾
-          </motion.span>
-        </motion.div>
-      </LampContainer>
+            <div className="space-y-4">
+              <h1 className="max-w-[760px] text-[42px] font-semibold leading-[1.02] tracking-normal text-sv-text-primary sm:text-[58px] lg:text-[66px]">
+                Sports history, sorted like a front office would use it.
+              </h1>
+              <p className="max-w-[560px] text-[15px] leading-7 text-sv-text-secondary sm:text-base">
+                Compare seasons, scan leaderboards, open playoff brackets, and drill into the players who shaped each campaign.
+              </p>
+            </div>
+
+            <div className="grid max-w-[620px] grid-cols-3 border-y border-sv-divider">
+              <StatTile value="2018" label="archive start" />
+              <StatTile value={`${competitionCount}`} label="competitions" />
+              <StatTile value="1-game" label="match focus" />
+            </div>
+          </div>
+
+          <div className="sv-editorial-surface rounded-[8px] p-3 sm:p-4">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b border-sv-divider pb-3">
+              <div>
+                <div className="sv-meta-label">Select a sport</div>
+                <div className="mt-1 text-sm font-medium text-sv-text-primary">Leaderboards, brackets, profiles</div>
+              </div>
+              <div className="hidden rounded-full border border-sv-divider bg-sv-surface-warm px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-sv-text-muted sm:block" style={{ fontFamily: 'var(--font-dm-mono), monospace' }}>
+                Light desk
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              {SPORTS.map((sport, index) => (
+                <motion.button
+                  key={sport.slug}
+                  type="button"
+                  disabled={sport.isDisabled}
+                  onClick={() => router.push(`/${sport.slug}`)}
+                  initial={shouldReduce ? false : { opacity: 0, y: 10 }}
+                  animate={shouldReduce ? undefined : { opacity: 1, y: 0 }}
+                  transition={{ delay: 0.08 + index * 0.035, duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={sport.isDisabled || shouldReduce ? undefined : { y: -2 }}
+                  whileTap={sport.isDisabled || shouldReduce ? undefined : { scale: 0.99 }}
+                  className={`sv-subtle-shine group rounded-[7px] border bg-white p-4 text-left transition-colors ${sport.isDisabled ? 'opacity-50' : 'hover:border-sv-border-strong'}`}
+                  style={{ borderColor: '#e4e3df' }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        className="flex h-9 min-w-9 shrink-0 items-center justify-center rounded-full border px-2 text-[10px] font-semibold"
+                        style={{ borderColor: `${sport.accent}44`, background: `${sport.accent}0f` }}
+                        aria-hidden
+                      >
+                        {sport.icon}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="truncate text-[15px] font-semibold text-sv-text-primary">{sport.name}</div>
+                        <div className="mt-1 truncate text-[12px] text-sv-text-muted">
+                          {sport.competitions[0] ?? 'Season archive'}
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      className="rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.08em]"
+                      style={{
+                        borderColor: sport.isDisabled ? '#e4e3df' : `${sport.accent}55`,
+                        color: sport.isDisabled ? '#9a9894' : sport.accent,
+                        fontFamily: 'var(--font-dm-mono), monospace',
+                      }}
+                    >
+                      {sport.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-2 border-t border-sv-divider pt-3">
+                    <SmallMetric label="Range" value={sport.range} />
+                    <SmallMetric label="Default" value={sport.primaryMetric} />
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+    </div>
+  )
+}
+
+function StatTile({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="py-4 pr-4">
+      <div className="text-[20px] font-semibold tabular-nums text-sv-text-primary" style={{ fontFamily: 'var(--font-dm-mono), monospace' }}>
+        {value}
+      </div>
+      <div className="mt-1 text-[10px] uppercase tracking-[0.08em] text-sv-text-muted" style={{ fontFamily: 'var(--font-dm-mono), monospace' }}>
+        {label}
+      </div>
+    </div>
+  )
+}
+
+function SmallMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[9px] uppercase tracking-[0.08em] text-sv-text-muted" style={{ fontFamily: 'var(--font-dm-mono), monospace' }}>
+        {label}
+      </div>
+      <div className="mt-1 truncate text-[12px] font-medium text-sv-text-secondary">
+        {value}
+      </div>
     </div>
   )
 }

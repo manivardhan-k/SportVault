@@ -1,0 +1,9 @@
+info,match_type,IT20
+info,date,2024/06/01
+info,team,India
+info,team,Australia
+info,player,India,Virat Kohli
+info,player,Australia,Pat Cummins
+info,registry,people,Virat Kohli,vk1
+info,registry,people,Pat Cummins,pc1
+ball,1,0.1,India,Virat Kohli,,Pat Cummins,4,0,0,0,0,0,,,

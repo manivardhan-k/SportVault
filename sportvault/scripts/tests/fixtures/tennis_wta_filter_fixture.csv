@@ -1,0 +1,8 @@
+tourney_id,tourney_name,surface,draw_size,tourney_level,tourney_date,match_num,winner_id,winner_seed,winner_entry,winner_name,winner_hand,winner_ht,winner_ioc,winner_age,loser_id,loser_seed,loser_entry,loser_name,loser_hand,loser_ht,loser_ioc,loser_age,score,best_of,round,minutes,w_ace,w_df,w_svpt,w_1stIn,w_1stWon,w_2ndWon,w_SvGms,w_bpSaved,w_bpFaced,l_ace,l_df,l_svpt,l_1stIn,l_1stWon,l_2ndWon,l_SvGms,l_bpSaved,l_bpFaced,winner_rank,winner_rank_points,loser_rank,loser_rank_points
+2024-UC,United Cup,Hard,18,I,20240105,1,888001,,,Iga Swiatek,R,176,POL,23.0,888010,,,Opponent A,R,175,GER,29.0,6-3 6-0,3,RR,60,1,1,30,20,16,5,8,1,2,0,1,20,12,8,4,7,0,1,1,9000,40,1500
+2024-BJK,BJK Cup Finals,Hard,12,D,20241115,2,888001,,,Iga Swiatek,R,176,POL,23.0,888011,,,Opponent B,R,173,CZE,28.0,6-2 6-2,3,SF,70,2,1,32,22,17,6,8,1,2,1,2,24,16,10,5,8,1,2,1,9000,55,1200
+2024-OLY,Olympics,Clay,64,O,20240801,3,888001,,,Iga Swiatek,R,176,POL,23.0,888012,,,Opponent C,R,174,ITA,25.0,6-1 6-1,3,QF,65,1,0,28,18,14,5,7,1,1,0,1,22,12,8,4,7,0,1,1,9000,25,2000
+2024-MAD,Madrid,Clay,96,PM,20240501,4,888001,,,Iga Swiatek,R,176,POL,23.0,888013,,,Opponent D,R,178,USA,27.0,6-4 6-4,3,SF,90,3,1,42,28,20,9,10,2,3,2,3,35,20,13,7,10,1,2,1,9000,18,2400
+2024-RG,Roland Garros,Clay,128,G,20240601,5,888001,,,Iga Swiatek,R,176,POL,23.0,888014,,,Opponent E,R,180,ESP,24.0,6-2 6-3,3,F,80,2,2,36,24,18,7,9,1,2,1,1,30,18,12,6,9,1,2,1,9000,12,2600
+2024-ROM,Rome,Clay,64,P,20240515,6,888001,,,Iga Swiatek,R,176,POL,23.0,888015,,,Opponent F,R,175,FRA,26.0,6-3 6-4,3,QF,75,2,1,34,21,16,7,8,1,1,1,1,26,15,10,5,8,0,1,1,9000,14,2500
+2024-STU,Stuttgart,Clay,32,P,20240420,7,888001,,,Iga Swiatek,R,176,POL,23.0,888016,,,Opponent G,R,172,BLR,26.0,W/O,3,SF,0,,,,,,,,,,,,,,,,,,,,1,9000,2,8000

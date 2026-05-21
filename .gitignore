@@ -1,19 +1,26 @@
-# env files — never commit
-.env
-.env.local
-.env*.local
+# env files — never commit real secrets
+.env*
+!.env.example
 
 # deps & build
 node_modules/
 .next/
 out/
 build/
+.vercel/
 
 # misc
 .DS_Store
 *.pem
 *.tsbuildinfo
 npm-debug.log*
+graphify-out/
+ObsidianSportVault/
+.agents/
+.claude/
+.scripts-out/
+skills-lock.json
+*.local.json
 
 # Python
 __pycache__/

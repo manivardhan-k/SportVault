@@ -3,7 +3,7 @@ import type { SportConfig } from '@/types/sport-config'
 export const f1Config: SportConfig = {
   slug: 'f1',
   name: 'Formula 1',
-  icon: '🏎️',
+  icon: 'F1',
   accentColor: '#E10600',
   competitions: [
     {
@@ -16,11 +16,11 @@ export const f1Config: SportConfig = {
   leaderboardColumns: [
     { key: 'position', label: '#', sortable: false },
     { key: 'driver', label: 'Driver', sortable: false },
-    { key: 'team', label: 'Constructor', sortable: true },
-    { key: 'points', label: 'Pts', sortable: true },
-    { key: 'wins', label: 'Wins', sortable: true },
-    { key: 'podiums', label: 'Podiums', sortable: true },
-    { key: 'poles', label: 'Poles', sortable: true },
+    { key: 'team', label: 'Constructor', sortable: true, tooltip: 'Constructor: The team the driver races for' },
+    { key: 'points', label: 'Pts', sortable: true, tooltip: 'Points: Total championship points earned' },
+    { key: 'wins', label: 'Wins', sortable: true, tooltip: 'Wins: Total race victories' },
+    { key: 'podiums', label: 'Podiums', sortable: true, tooltip: 'Podiums: Total top-3 finishes' },
+    { key: 'poles', label: 'Poles', sortable: true, tooltip: 'Poles: Total pole positions in qualifying' },
   ],
   defaultSortKey: 'points',
   expandedChartConfig: {

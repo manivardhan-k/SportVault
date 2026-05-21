@@ -20,11 +20,21 @@ export interface LeaderboardResponse {
   year: number
   columns: ColumnDef[]
   rows: LeaderboardRow[]
+  /** Maps team name → standings position (1 = best). Used for team-based sorting. */
+  teamRankings?: Record<string, number>
 }
 
 export interface ChartDataPoint {
   label: string | number
   [key: string]: number | string
+}
+
+export interface ChartTab {
+  key: string
+  label: string
+  summaryStats: Record<string, number | string>
+  chartData?: ChartDataPoint[]
+  title?: string
 }
 
 export interface ScatterDataPoint {
@@ -42,6 +52,9 @@ export interface PlayerStatsResponse {
   season: number
   chartData: ChartDataPoint[]
   summaryStats: Record<string, number | string>
+  leaguePercentiles?: Record<string, number>
+  secondaryChartData?: ChartDataPoint[]
+  chartTabs?: ChartTab[]
   scatterData?: ScatterDataPoint[]
   scatterAxes?: { x: string; y: string }
 }
@@ -50,4 +63,44 @@ export interface SeasonMeta {
   year: number
   label: string
   status: 'completed' | 'in_progress' | 'upcoming'
+}
+
+export interface BracketMatchTeam {
+  id: number
+  shortName: string
+  name: string
+  colorPrimary: string
+  colorSecondary: string
+  wins: number
+  isWinner: boolean
+}
+
+export interface BracketMatch {
+  id: string
+  round: number
+  conference: string
+  seriesOrder: number
+  winnerTeamId: number | null
+  team1: BracketMatchTeam
+  team2: BracketMatchTeam
+  isComplete: boolean
+}
+
+export interface BracketSide {
+  label: string
+  round1Label: string
+  semisLabel: string
+  finalLabel: string
+  round1: BracketMatch[]
+  semis: BracketMatch[]
+  final: BracketMatch | null
+}
+
+export interface BracketResponse {
+  sport: string
+  year: number
+  left: BracketSide
+  right: BracketSide
+  finalsLabel: string
+  finals: BracketMatch | null
 }

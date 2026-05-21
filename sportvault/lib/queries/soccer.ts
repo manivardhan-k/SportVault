@@ -7,17 +7,27 @@ export async function getSoccerStandings(competition: string, year: number): Pro
   })
   if (!season) throw new Error(`No season for ${competition} ${year}`)
 
-  const stats = await prisma.soccerPlayerStat.findMany({
-    where: { seasonId: season.id },
-    include: { player: true },
-    orderBy: { goals: 'desc' },
-  })
-
-  const playerSeasons = await prisma.playerSeason.findMany({
-    where: { seasonId: season.id },
-    include: { team: true },
-  })
+  const [stats, playerSeasons, teamStandings] = await Promise.all([
+    prisma.soccerPlayerStat.findMany({
+      where: { seasonId: season.id },
+      include: { player: true },
+      orderBy: { goals: 'desc' },
+    }),
+    prisma.playerSeason.findMany({
+      where: { seasonId: season.id },
+      include: { team: true },
+    }),
+    prisma.teamStanding.findMany({
+      where: { seasonId: season.id },
+      include: { team: true },
+      orderBy: [{ position: 'asc' }],
+    }),
+  ])
   const psMap = new Map(playerSeasons.map(ps => [ps.playerId, ps.team]))
+  const teamRankings = Object.fromEntries(teamStandings.map((standing, idx) => [
+    standing.team.name,
+    standing.position ?? idx + 1,
+  ]))
 
   const rows = stats.map((s, i) => {
     const team = psMap.get(s.playerId)
@@ -56,6 +66,7 @@ export async function getSoccerStandings(competition: string, year: number): Pro
       { key: 'minutes', label: 'Mins', sortable: true },
     ],
     rows,
+    teamRankings,
   }
 }
 

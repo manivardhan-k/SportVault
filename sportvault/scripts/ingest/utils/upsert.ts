@@ -31,11 +31,11 @@ export async function upsertTeam(
   shortName: string,
   color: string
 ) {
-  const existing = await prisma.team.findFirst({ where: { sportId, externalId } })
-  if (existing) {
-    return prisma.team.update({ where: { id: existing.id }, data: { name, shortName, colorPrimary: color } })
-  }
-  return prisma.team.create({ data: { sportId, externalId, name, shortName, colorPrimary: color } })
+  return prisma.team.upsert({
+    where: { sportId_externalId: { sportId, externalId } },
+    create: { sportId, externalId, name, shortName, colorPrimary: color },
+    update: { name, shortName, colorPrimary: color },
+  })
 }
 
 export async function upsertPlayer(
@@ -45,9 +45,9 @@ export async function upsertPlayer(
   lastName: string,
   nationality: string
 ) {
-  const existing = await prisma.player.findFirst({ where: { sportId, externalId } })
-  if (existing) {
-    return prisma.player.update({ where: { id: existing.id }, data: { firstName, lastName, nationality } })
-  }
-  return prisma.player.create({ data: { sportId, externalId, firstName, lastName, nationality } })
+  return prisma.player.upsert({
+    where: { sportId_externalId: { sportId, externalId } },
+    create: { sportId, externalId, firstName, lastName, nationality },
+    update: { firstName, lastName, nationality },
+  })
 }

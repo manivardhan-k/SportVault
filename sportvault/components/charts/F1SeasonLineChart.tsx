@@ -30,6 +30,7 @@ export function F1SeasonLineChart({ data, teamColor, driverName, dualMode }: F1S
           domain={isPosMode ? [1, 20] : undefined}
         />
         <Tooltip
+          wrapperStyle={{ zIndex: 100 }}
           contentStyle={{ background: '#ffffff', border: '1px solid #e4e3df', borderRadius: 4, fontSize: 12 }}
           labelStyle={{ color: '#9a9894' }}
           labelFormatter={label => `Round ${label}`}
@@ -44,7 +45,9 @@ export function F1SeasonLineChart({ data, teamColor, driverName, dualMode }: F1S
           dot={{ r: 3, fill: teamColor }}
           activeDot={{ r: 5 }}
           name={driverName}
-          isAnimationActive={false}
+          isAnimationActive={true}
+          animationDuration={1000}
+          animationEasing="ease-in-out"
         />
         <Line
           type="monotone"
@@ -55,7 +58,9 @@ export function F1SeasonLineChart({ data, teamColor, driverName, dualMode }: F1S
           dot={{ r: 3, fill: teamColor }}
           activeDot={{ r: 5 }}
           name={driverName}
-          isAnimationActive={false}
+          isAnimationActive={true}
+          animationDuration={1000}
+          animationEasing="ease-in-out"
         />
       </LineChart>
     </ResponsiveContainer>

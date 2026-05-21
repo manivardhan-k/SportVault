@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
+:root {
+  --font-dm-sans: "Aptos", "Helvetica Neue", Arial, sans-serif;
+  --font-dm-mono: "SFMono-Regular", "Roboto Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
 @theme inline {
   /* Background layers */
   --color-sv-bg:             #f7f6f3;
   --color-sv-surface:        #ffffff;
   --color-sv-surface2:       #f2f1ee;
   --color-sv-surface-raised: #faf9f7;
+  --color-sv-surface-warm:   #fbfaf7;
   --color-sv-divider:        #e4e3df;
   --color-sv-border2:        #d4d3cf;
+  --color-sv-border-strong:  #b9b6af;
 
   /* Text */
   --color-sv-text-primary:   #111110;
@@ -35,7 +42,116 @@ body {
   color: #111110;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(17, 17, 16, 0.026) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(17, 17, 16, 0.018) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.sv-editorial-surface {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 249, 247, 0.98)),
+    #ffffff;
+  border: 1px solid #e4e3df;
+  box-shadow: 0 1px 0 rgba(17, 17, 16, 0.03), 0 18px 42px rgba(17, 17, 16, 0.045);
+}
+
+.sv-editorial-panel {
+  background: #fbfaf7;
+  border-top: 1px solid #e4e3df;
+  border-bottom: 1px solid #e4e3df;
+}
+
+.sv-command-strip {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(251, 250, 247, 0.94)),
+    #fbfaf7;
+  border-top: 1px solid rgba(228, 227, 223, 0.72);
+  border-bottom: 1px solid #e4e3df;
+}
+
+.sv-meta-label {
+  font-family: var(--font-dm-mono), monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9a9894;
+}
+
+.sv-data-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e4e3df;
+  background: #ffffff;
+  color: #5a5955;
+  border-radius: 999px;
+  padding: 6px 9px;
+}
+
+.sv-scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sv-scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.sv-subtle-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.sv-subtle-shine::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.68) 48%, transparent 68%);
+  opacity: 0;
+  transform: translateX(-70%);
+  transition: opacity 180ms ease, transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sv-subtle-shine:hover::after,
+.sv-subtle-shine:focus-visible::after {
+  opacity: 1;
+  transform: translateX(70%);
+}
+
 /* Thin warm scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d4d3cf; border-radius: 2px; }
+
+/* Smooth hover transitions for Recharts */
+.recharts-radar-polygon,
+.recharts-line,
+.recharts-curve {
+  transition: fill-opacity 0.25s ease, stroke-opacity 0.25s ease, stroke-width 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .sv-subtle-shine::after {
+    display: none;
+  }
+}

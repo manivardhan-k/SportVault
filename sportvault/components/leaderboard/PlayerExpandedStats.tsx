@@ -10,11 +10,14 @@ import { StatsBarChart } from '@/components/charts/StatsBarChart'
 import { NflQbScatterChart } from '@/components/charts/NflQbScatterChart'
 import { NflWeeklyBarChart } from '@/components/charts/NflWeeklyBarChart'
 
+import { fmtVal } from '@/lib/format'
+
 interface PlayerExpandedStatsProps {
   stats: PlayerStatsResponse | null
   loading: boolean
   chartConfig: ChartConfig
   accentColor: string
+  leagueValues: Record<string, number[]>
   onClose: () => void
   /** When true, renders bare content (no tr/td wrapper) for use outside a table */
   inline?: boolean
@@ -22,12 +25,16 @@ interface PlayerExpandedStatsProps {
 
 const SKIP_KEYS = new Set(['position', 'rank', 'season'])
 
-export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, onClose, inline }: PlayerExpandedStatsProps) {
+export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, leagueValues, onClose: _onClose, inline }: PlayerExpandedStatsProps) {
   const [chartMode, setChartMode] = useState<'pts' | 'pos'>('pts')
+  const [activeTab, setActiveTab] = useState<string | null>(null)
   const shouldReduce = useReducedMotion()
+  void _onClose
+
+  const activeChartTab = stats?.chartTabs?.find(tab => tab.key === activeTab) ?? stats?.chartTabs?.[0] ?? null
 
   const innerContent = (
-    <div className="px-6 py-[14px] flex gap-8 items-start">
+    <div className="flex flex-col items-stretch gap-4 px-3 py-[14px] sm:px-6 md:flex-row md:items-start md:gap-8">
             {loading && (
               <div className="flex items-center gap-2 py-4">
                 <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
@@ -38,21 +45,21 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
             {stats && !loading && (
               <>
                 {/* Left: stat chips */}
-                <div className="flex flex-col gap-[6px] flex-shrink-0">
+                <div className="flex flex-shrink-0 flex-col gap-[6px]">
                   <div
                     className="text-[9px] uppercase tracking-[0.08em] mb-[2px]"
                     style={{ fontFamily: 'var(--font-dm-mono), monospace', color: '#9a9894' }}
                   >
                     SEASON STATS
                   </div>
-                  <div className="grid gap-[6px]" style={{ gridTemplateColumns: 'repeat(3, auto)' }}>
+                  <div className="grid grid-cols-3 gap-[6px]">
                     {Object.entries(stats.summaryStats)
                       .filter(([k, v]) => !SKIP_KEYS.has(k) && v !== 0 && v !== null && v !== undefined && v !== '')
                       .map(([k, v]) => (
                         <div
                           key={k}
-                          className="rounded-[5px] px-[10px] py-[5px] min-w-[52px]"
-                          style={{ background: '#ffffff', border: '1px solid #e4e3df' }}
+                          className="min-w-[52px] rounded-[6px] px-[10px] py-[6px]"
+                          style={{ background: '#ffffff', border: '1px solid #e4e3df', boxShadow: '0 1px 0 rgba(17,17,16,0.03)' }}
                         >
                           <div
                             className="text-[9px] uppercase tracking-[0.06em] mb-[2px]"
@@ -64,7 +71,7 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
                             className="text-[15px] font-semibold"
                             style={{ fontFamily: 'var(--font-dm-mono), monospace', color: '#111110' }}
                           >
-                            {v}
+                            {fmtVal(v, k)}
                           </div>
                         </div>
                       ))}
@@ -72,7 +79,7 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
                 </div>
 
                 {/* Right: chart */}
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1 rounded-[8px] border border-sv-divider bg-white p-3">
                   {/* Chart title */}
                   {chartConfig.label && (
                     <div
@@ -89,12 +96,12 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
 
                   {/* F1-only mode toggle */}
                   {chartConfig.dualMode && (
-                    <div className="flex gap-2 mb-3">
+                    <div className="mb-3 flex gap-2">
                       {(['pts', 'pos'] as const).map(mode => (
                         <button
                           key={mode}
                           onClick={() => setChartMode(mode)}
-                          className="text-xs font-medium px-2 py-0.5 rounded transition-colors duration-150"
+                          className="rounded-full px-2.5 py-1 text-xs font-medium transition-colors duration-150"
                           style={{
                             fontFamily: 'var(--font-dm-mono), monospace',
                             background: chartMode === mode ? accentColor : 'transparent',
@@ -111,6 +118,7 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
                   {/* Charts */}
                   {stats.chartData.length > 0 && chartConfig.type === 'line' && (
                     <F1SeasonLineChart
+                      key={chartMode}
                       data={stats.chartData}
                       teamColor={stats.team.colorPrimary}
                       driverName={stats.name}
@@ -122,9 +130,100 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
                       summaryStats={stats.summaryStats}
                       teamColor={stats.team.colorPrimary}
                       name={stats.name}
+                      excludeKeys={chartConfig.excludeKeys}
+                      leagueValues={leagueValues}
                     />
                   )}
-                  {chartConfig.type === 'bar' && stats.chartData.length > 0 && (
+                  {chartConfig.type === 'radar' && (
+                    <StatsRadarChart
+                      summaryStats={stats.summaryStats}
+                      teamColor={stats.team.colorPrimary}
+                      name={stats.name}
+                      excludeKeys={chartConfig.excludeKeys}
+                      leagueValues={leagueValues}
+                    />
+                  )}
+                  {chartConfig.type === 'radar+bar' && (
+                    <div className="flex flex-col gap-4">
+                      <StatsRadarChart
+                        summaryStats={stats.summaryStats}
+                        teamColor={stats.team.colorPrimary}
+                        name={stats.name}
+                        leagueValues={leagueValues}
+                      />
+                      <StatsBarChart
+                        summaryStats={{}}
+                        data={(stats.secondaryChartData ?? []).map(point => ({
+                          label: String(point.label),
+                          value: Number(point.value ?? 0),
+                        }))}
+                        teamColor={stats.team.colorPrimary}
+                        name={stats.name}
+                        title={`${stats.name} — surface win %`}
+                      />
+                    </div>
+                  )}
+                  {chartConfig.type === 'radar-tabs' && activeChartTab && (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-2">
+                        {(stats.chartTabs ?? []).map(tab => (
+                          <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            className="rounded-full px-2.5 py-1 text-xs font-medium transition-colors duration-150"
+                            style={{
+                              fontFamily: 'var(--font-dm-mono), monospace',
+                              background: activeChartTab.key === tab.key ? accentColor : 'transparent',
+                              color: activeChartTab.key === tab.key ? '#ffffff' : '#9a9894',
+                              border: `1px solid ${activeChartTab.key === tab.key ? accentColor : '#e4e3df'}`,
+                            }}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                      <StatsRadarChart
+                        summaryStats={activeChartTab.summaryStats}
+                        teamColor={stats.team.colorPrimary}
+                        name={stats.name}
+                        excludeKeys={['Mat', 'Inn', 'Matches', 'Innings']}
+                        leagueValues={leagueValues}
+                      />
+                    </div>
+                  )}
+                  {chartConfig.type === 'bar-tabs' && activeChartTab && (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-2">
+                        {(stats.chartTabs ?? []).map(tab => (
+                          <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            className="rounded-full px-2.5 py-1 text-xs font-medium transition-colors duration-150"
+                            style={{
+                              fontFamily: 'var(--font-dm-mono), monospace',
+                              background: activeChartTab.key === tab.key ? accentColor : 'transparent',
+                              color: activeChartTab.key === tab.key ? '#ffffff' : '#9a9894',
+                              border: `1px solid ${activeChartTab.key === tab.key ? accentColor : '#e4e3df'}`,
+                            }}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                      <StatsBarChart
+                        summaryStats={activeChartTab.summaryStats}
+                        data={(activeChartTab.chartData ?? []).map(point => ({
+                          label: String(point.label),
+                          value: Number(point.value ?? 0),
+                          description: typeof point.description === 'string' ? point.description : undefined,
+                        }))}
+                        teamColor={stats.team.colorPrimary}
+                        name={stats.name}
+                        title={activeChartTab.title ?? `${stats.name} — match by match`}
+                      />
+                    </div>
+                  )}
+                  {chartConfig.type === 'bar' && stats.chartData.length > 0 && !stats.scatterData && (
                     <NflWeeklyBarChart
                       data={stats.chartData as { label: string; value: number }[]}
                       teamColor={stats.team.colorPrimary}
@@ -139,6 +238,7 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
                       name={stats.name}
                     />
                   )}
+
                   {stats.scatterData && stats.scatterData.length > 0 && stats.scatterAxes && (
                     <NflQbScatterChart
                       data={stats.scatterData}
@@ -146,18 +246,6 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
                       selectedName={stats.name}
                     />
                   )}
-
-                  {/* Compare placeholder */}
-                  <div className="mt-3 text-right">
-                    <button
-                      className="text-xs cursor-not-allowed opacity-30 select-none"
-                      style={{ color: '#9a9894' }}
-                      disabled
-                      title="Coming soon"
-                    >
-                      + Compare
-                    </button>
-                  </div>
                 </div>
               </>
             )}
@@ -165,7 +253,7 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
   )
 
   if (inline) {
-    return <div style={{ background: '#faf9f7' }}>{innerContent}</div>
+    return <div style={{ background: '#fbfaf7' }}>{innerContent}</div>
   }
 
   return (
@@ -179,7 +267,7 @@ export function PlayerExpandedStats({ stats, loading, chartConfig, accentColor, 
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={shouldReduce ? { duration: 0 } : { duration: 0.38, ease: [0.4, 0, 0.2, 1] }}
-          style={{ overflow: 'hidden', background: '#faf9f7' }}
+          style={{ overflow: 'hidden', background: '#fbfaf7' }}
         >
           {innerContent}
         </motion.div>
