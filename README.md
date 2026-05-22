@@ -111,12 +111,15 @@ npm run ingest -- --sport tennis  --year 2024 --tour wta
 npm run ingest -- --sport mma     --year 2024
 ```
 
-NFL notes:
-- Before first NFL bracket/standings rerun after this change:
-  `npx prisma db push`
-  `npx ts-node --project tsconfig.scripts.json -r dotenv/config scripts/apply-rls.ts`
-- `npm run ingest -- --sport nfl --year <year> --type regular` now writes player stats **and** team standings used by Team sorting.
-- `npm run ingest -- --sport nfl --year <year> --type playoffs` now writes player stats, playoff team standings, and `nfl_playoff_games` used by bracket view.
+### NFL Ingestion Notes
+
+* **Prerequisites**: Before running NFL ingestion for the first time or after schema changes:
+  ```bash
+  npx prisma db push
+  npx ts-node --project tsconfig.scripts.json -r dotenv/config scripts/apply-rls.ts
+  ```
+* **Regular Season**: `npm run ingest -- --sport nfl --year <year> --type regular` ingests player statistics and team standings.
+* **Playoffs**: `npm run ingest -- --sport nfl --year <year> --type playoffs` ingests player statistics, playoff standings, and playoff games.
 
 Pending manual runs:
 - none for active v1 sports
@@ -125,7 +128,8 @@ Current UI scope:
 - live: F1, NFL, NBA, Cricket, Tennis
 - hidden/disabled: Soccer, MMA
 
-For NFL backfills, stop `npm run dev` first and close memory-heavy apps if free RAM is under 1 GB. The ingest script sets `NODE_OPTIONS=--max-old-space-size=2048`; that caps the Node heap only, not Python or total process RSS.
+> [!TIP]
+> **Resource Management**: NFL ingestion/backfills can be resource-intensive. If running on a resource-constrained machine, consider stopping the development server (`npm run dev`) during the ingestion process. The ingest script automatically sets `NODE_OPTIONS=--max-old-space-size=2048` to safeguard Node heap limits.
 
 ## Project Layout
 
@@ -164,7 +168,7 @@ sportvault/
 
 See [PLAN.md](PLAN.md) for project status, history of plans, and outstanding work.
 
-## Agent Rules
+## Developer & AI Agent Guidelines
 
-- [sportvault/AGENTS.md](sportvault/AGENTS.md) — Next.js 16 has breaking changes from training data; consult `node_modules/next/dist/docs/` before writing Next-specific code
-- [sportvault/CLAUDE.md](sportvault/CLAUDE.md) — re-exports AGENTS.md
+- [sportvault/AGENTS.md](sportvault/AGENTS.md) — Reference for Next.js 16 breaking changes and API conventions.
+- [sportvault/CLAUDE.md](sportvault/CLAUDE.md) — Quick environment context and command reference.
