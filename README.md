@@ -2,6 +2,8 @@
 
 Historical sports data platform for F1, Soccer, NFL, NBA, Cricket, Tennis, and MMA. Layered folder UI: sport → season type → year → leaderboard (with descriptive stat tooltips) → expanded player stats with sport-specific charts.
 
+**Live demo:** https://sport-vault-app.vercel.app
+
 ## Stack
 
 - **Next.js 16** (App Router, params-as-Promise) + TypeScript
