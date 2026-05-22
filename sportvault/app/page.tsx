@@ -14,7 +14,7 @@ const SPORTS = SPORT_CONFIGS.map(config => {
     slug: config.slug,
     name: config.name,
     accent: config.accentColor,
-    icon: config.icon,
+    mark: config.icon,
     competitions,
     status: isDisabled ? 'Paused' : 'Live',
     range: config.slug === 'mma' ? '2024' : '2018-2024',
@@ -71,9 +71,6 @@ export default function HomePage() {
                 <div className="sv-meta-label">Select a sport</div>
                 <div className="mt-1 text-sm font-medium text-sv-text-primary">Leaderboards, brackets, profiles</div>
               </div>
-              <div className="hidden rounded-full border border-sv-divider bg-sv-surface-warm px-2.5 py-1 text-[10px] uppercase tracking-[0.08em] text-sv-text-muted sm:block" style={{ fontFamily: 'var(--font-dm-mono), monospace' }}>
-                Light desk
-              </div>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
@@ -93,13 +90,7 @@ export default function HomePage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span
-                        className="flex h-9 min-w-9 shrink-0 items-center justify-center rounded-full border px-2 text-[10px] font-semibold"
-                        style={{ borderColor: `${sport.accent}44`, background: `${sport.accent}0f` }}
-                        aria-hidden
-                      >
-                        {sport.icon}
-                      </span>
+                      <SportLogo mark={sport.mark} accent={sport.accent} />
                       <div className="min-w-0">
                         <div className="truncate text-[15px] font-semibold text-sv-text-primary">{sport.name}</div>
                         <div className="mt-1 truncate text-[12px] text-sv-text-muted">
@@ -107,15 +98,13 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    <span
-                      className="rounded-full border px-2 py-1 text-[9px] uppercase tracking-[0.08em]"
-                      style={{
-                        borderColor: sport.isDisabled ? '#e4e3df' : `${sport.accent}55`,
-                        color: sport.isDisabled ? '#9a9894' : sport.accent,
-                        fontFamily: 'var(--font-dm-mono), monospace',
-                      }}
-                    >
-                      {sport.status}
+                    <span className="flex shrink-0 items-center gap-1.5 text-[9px] uppercase tracking-[0.08em] text-sv-text-muted" style={{ fontFamily: 'var(--font-dm-mono), monospace' }}>
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: sport.isDisabled ? '#b9b6af' : sport.accent }}
+                        aria-hidden
+                      />
+                      <span>{sport.status}</span>
                     </span>
                   </div>
 
@@ -130,6 +119,23 @@ export default function HomePage() {
         </div>
       </motion.section>
     </div>
+  )
+}
+
+function SportLogo({ mark, accent }: { mark: string; accent: string }) {
+  return (
+    <span
+      className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-white text-[10px] font-bold tracking-[0.04em] text-sv-text-primary shadow-[inset_0_0_0_4px_rgba(255,255,255,0.75)]"
+      style={{
+        borderColor: `${accent}66`,
+        fontFamily: 'var(--font-dm-mono), monospace',
+      }}
+      aria-hidden
+    >
+      <span className="absolute inset-[4px] rounded-full opacity-[0.13]" style={{ backgroundColor: accent }} />
+      <span className="absolute bottom-[6px] h-[2px] w-4 rounded-full opacity-80" style={{ backgroundColor: accent }} />
+      <span className="relative z-10">{mark}</span>
+    </span>
   )
 }
 

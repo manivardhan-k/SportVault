@@ -26,12 +26,13 @@ export function SportTabs() {
   return (
     <div className="flex h-[52px] items-center justify-between gap-2 px-3 sm:px-6">
       {/* Logo — always full text */}
-      <span
-        className="text-[13px] sm:text-base font-bold tracking-[0.1em] sm:tracking-[0.14em] text-sv-text-primary select-none whitespace-nowrap"
+      <Link
+        href="/"
+        className="text-[13px] sm:text-base font-bold tracking-[0.1em] sm:tracking-[0.14em] text-sv-text-primary whitespace-nowrap hover:opacity-80 transition-opacity duration-150"
         style={{ fontFamily: 'var(--font-dm-mono), DM Mono, monospace' }}
       >
         SPORTVAULT
-      </span>
+      </Link>
 
       {/* Sport selector pill group */}
       <div
