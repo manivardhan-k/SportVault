@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== 'production'
-const projectRoot = process.cwd()
+const projectRoot = process.env.NEXT_PRIVATE_OUTPUT_TRACE_ROOT || process.cwd()
 
 function optionalOrigin(value: string | undefined): string | null {
   if (!value) return null
@@ -38,7 +38,6 @@ function contentSecurityPolicy(): string {
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  outputFileTracingRoot: projectRoot,
   poweredByHeader: false,
   turbopack: {
     root: projectRoot,
